@@ -5,6 +5,8 @@ if clang >/dev/null 2>&1 ; then
 	export CC="gcc"
 fi
 
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $(DIR)"/../"
 mkdir -p ./lib
 
 if [[ `uname` == 'Darwin' ]]; then
