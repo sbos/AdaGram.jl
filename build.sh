@@ -5,7 +5,10 @@ if clang >/dev/null 2>&1 ; then
 	export CC="gcc"
 fi
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+pushd `dirname $0` > /dev/null
+DIR=`pwd`
+popd > /dev/null
+
 cd $DIR
 mkdir -p ./lib
 
