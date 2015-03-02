@@ -6,7 +6,7 @@ if clang >/dev/null 2>&1 ; then
 fi
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $DIR"/../"
+cd $DIR
 mkdir -p ./lib
 
 if [[ `uname` == 'Darwin' ]]; then
