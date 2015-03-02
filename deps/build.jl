@@ -1,1 +1,1 @@
-run(`./build.sh`)
+run(`../build.sh`)
