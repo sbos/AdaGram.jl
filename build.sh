@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export CC="clang"
 
 if clang >/dev/null 2>&1 ; then
