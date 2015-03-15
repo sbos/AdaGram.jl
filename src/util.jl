@@ -6,7 +6,7 @@ function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{St
 		try
 			word, freq = split(readline(fin))
 			freq_num = int64(freq)
-			if freq_num < min_freq || word in stopwords || !ismatch(r"[[:alnum:]]*[[:alpha:]]+", word) continue end
+			if freq_num < min_freq || word in stopwords continue end
 			push!(id2word, word)
 			push!(freqs, freq_num)
 		catch e
