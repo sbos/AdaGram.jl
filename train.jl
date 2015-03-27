@@ -71,6 +71,10 @@ s = ArgParseSettings()
     help = "minimal probability of a meaning to contribute into gradients"
     arg_type = Float64
     default = 1e-10
+  "--L2"
+    help = "L2-regularization weight"
+    arg_type = Float64
+    default = 0.
 end
 
 args = parse_args(ARGS, s)
@@ -98,6 +102,7 @@ window = args["window"]
 
 inplace_train_vectors!(vm, dict, args["train"], window;
   threshold=args["subsample"], context_cut=args["context-cut"],
-  epochs=args["epochs"], init_count=args["init-count"], sense_treshold=args["sense-treshold"])
+  epochs=args["epochs"], init_count=args["init-count"], sense_treshold=args["sense-treshold"],
+  L2=args["L2"])
 
 save_model(args["output"], vm, dict)

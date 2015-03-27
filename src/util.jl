@@ -96,6 +96,7 @@ function save_model(path::String, vm::VectorModel, dict::Dictionary, min_prob=1e
 	println(file, size(vm.code, 1))
 
 	write(file, vm.frequencies)
+	write(file, vm.node_freqs)
 	write(file, vm.code)
 	write(file, vm.path)
 	write(file, vm.counts)
@@ -127,6 +128,7 @@ function load_model(path::String)
 
 	vm = VectorModel(max_length, _V, _M, _T, alpha, d)
 	read!(file, sdata(vm.frequencies))
+	read!(file, sdata(vm.node_freqs))
 	read!(file, sdata(vm.code))
 	read!(file, sdata(vm.path))
 	read!(file, sdata(vm.counts))

@@ -4,7 +4,8 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		window_length::Int,
 		start_lr::Float64, total_words::Float64, words_read::DenseArray{Int64},
 		total_ll::DenseArray{Float64}; batch::Int=10000,
-		context_cut::Bool = true, sense_treshold::Float64=1e-32)
+		context_cut::Bool = true, sense_treshold::Float64=1e-32,
+		L2::Float64=0.)
 
 	N = length(doc)
 	in_grad = zeros(Tsf, M(vm), T(vm))
@@ -40,7 +41,8 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 			if i == j continue end
 			y = doc[j]
 
-			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, sense_treshold)
+			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, sense_treshold, 
+				total_words, L2)
 
 			total_ll[1] += ll
 			total_ll[2] += 1
@@ -66,8 +68,8 @@ end
 
 function in_place_update!{Tw <: Integer}(vm::VectorModel,
 		x::Tw, y::Tw, z::DenseArray{Float64}, lr::Float64,
-		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, sense_treshold::Float64)
-
+		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, sense_treshold::Float64,
+		total_freq::Float64, l2::Float64=0.)
 
 	return ccall((:inplace_update, "superlib"), Float32,
 		(Ptr{Float32}, Ptr{Float32},
@@ -75,13 +77,15 @@ function in_place_update!{Tw <: Integer}(vm::VectorModel,
 			Int,
 			Ptr{Int32}, Ptr{Int8}, Int64,
 			Ptr{Float32}, Ptr{Float32},
-			Float32, Float32),
+			Float32, Float32, 
+			Ptr{Float32}, Float32, Float32, Float32),
 		sdata(vm.In), sdata(vm.Out),
 			M(vm), T(vm), z,
 			x,
 			view(vm.path, :, y), view(vm.code, :, y), size(vm.code, 1),
 			in_grad, out_grad,
-			float32(lr), float32(sense_treshold))
+			float32(lr), float32(sense_treshold), 
+			vm.node_freqs, vm.frequencies[x], total_freq, l2)
 end
 
 function var_init_z!(vm::VectorModel, x::Integer, z::DenseArray{Float64})
@@ -110,7 +114,8 @@ end
 function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::String,
 		window_length::Int; batch::Int = 64000, start_lr::Float64 = 0.025,
 		log_path::Union(String, Nothing) = nothing, threshold::Float64 = Inf,
-		context_cut::Bool = true, epochs::Int = 1, init_count::Float64=-1, sense_treshold::Float64=1e-32)
+		context_cut::Bool = true, epochs::Int = 1, init_count::Float64=-1, 
+		sense_treshold::Float64=1e-32, L2::Float64=0.)
 	for w in 1:V(vm)
 		vm.counts[1, w] = init_count > 0 ? init_count : vm.frequencies[w]
 	end
@@ -143,7 +148,7 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::String,
 
 			inplace_train_vectors!(vm, doc, window_length,
 				start_lr, train_words, words_read, total_ll;
-				context_cut = context_cut, sense_treshold = sense_treshold)
+				context_cut = context_cut, sense_treshold = sense_treshold, L2 = L2)
 		end
 
 		close(file)

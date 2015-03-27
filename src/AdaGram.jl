@@ -36,6 +36,7 @@ end
 
 type VectorModel
 	frequencies::DenseArray{Int64}
+	node_freqs::DenseArray{Tsf}
 	code::DenseArray{Int8, 2}
 	path::DenseArray{Int32, 2}
 	In::DenseArray{Tsf, 3}
@@ -83,15 +84,16 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 	counts = shared_zeros(Float32, (T, V))
 
 	frequencies = shared_zeros(Int64, (V,))
+	node_freqs = shared_zeros(Tsf, (V,))
 
-	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
+	return VectorModel(frequencies, node_freqs, code, path, In, Out, alpha, d, counts)
 end
 
 function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1e-2, 
 	d::Float64=0.)
 	V = length(freqs)
 
-	nodes = build_huffman_tree(freqs)
+	nodes, node_freqs_ = build_huffman_tree(freqs)
 	outputs = convert_huffman_tree(nodes, V)
 
 	max_length = maximum(map(x -> length(x.code), outputs))
@@ -115,7 +117,10 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 	frequencies = shared_zeros(Int64, (V,))
 	frequencies[:] = freqs
 
-	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
+	node_freqs = shared_zeros(Tsf, (V, ))
+	node_freqs[:] = node_freqs_
+
+	return VectorModel(frequencies, node_freqs, code, path, In, Out, alpha, d, counts)
 end
 
 view(vm::VectorModel, v::Integer, s::Integer) = view(vm.In, :, s, v)
