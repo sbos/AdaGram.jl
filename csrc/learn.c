@@ -51,8 +51,6 @@ float inplace_update(float* In, float* Out,
 			float d = 1 - code[n] - sigmoid(f);
 			float g = z[k] * lr * d;
 
-			float in_l2  = l2 * z[k] * lr * x_freq / total_freq;
-
 			for (int i = 0; i < M; ++i) {
 				in_grad[k*M + i] += g * out[i] - l2 * z[k] * lr * in[i];
 				out_grad[i]      += g * in[i];
