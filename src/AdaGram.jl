@@ -115,9 +115,6 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 	frequencies = shared_zeros(Int64, (V,))
 	frequencies[:] = freqs
 
-	node_freqs = shared_zeros(Tsf, (V, ))
-	node_freqs[:] = node_freqs_
-
 	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
 end
 
