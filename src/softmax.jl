@@ -52,8 +52,6 @@ function build_huffman_tree{Tf <: Number}(freqs::Array{Tf})
 		return node[2]
 	end
 
-	node_freqs = Array(Float32, V)
-
 	L = V
 	while length(heap) > 1
 		L += 1
@@ -63,13 +61,11 @@ function build_huffman_tree{Tf <: Number}(freqs::Array{Tf})
 		freq = 1
 		freq = pop_initialize!(L, true) + pop_initialize!(L, false)
 		heappush!(heap, (node, freq), freq_ord)
-
-		node_freqs[L - V] = freq
 	end
 
 	@assert length(heap) == 1
 
-	return nodes, node_freqs
+	return nodes
 end
 
 function convert_huffman_tree(nodes::Array{HierarchicalSoftmaxNode}, V::Integer)

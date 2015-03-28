@@ -21,8 +21,7 @@ float inplace_update(float* In, float* Out,
 	Int x,  
 	int32_t* path, int8_t* code, int64_t length,
 	float* in_grad, float* out_grad, 
-	float lr, float sense_treshold, 
-	float* node_freqs, float x_freq, float total_freq, float l2) {
+	float lr, float sense_treshold, float l2) {
 
 	--x;
 
@@ -34,10 +33,9 @@ float inplace_update(float* In, float* Out,
 
 	for (int n = 0; n < length && code[n] != -1; ++n) {
 		float* out = Out + (path[n]-1)*M;
-		float out_l2 = l2 * lr * node_freqs[n] / total_freq;
 
 		for (int i = 0; i < M; ++i)
-			out_grad[i] = -out_l2 * out[i];
+			out_grad[i] = -l2 * lr * out[i];
 
 		for (int k = 0; k < T; ++k) {
 			if (z[k] < sense_treshold) continue;
@@ -56,7 +54,7 @@ float inplace_update(float* In, float* Out,
 			float in_l2  = l2 * z[k] * lr * x_freq / total_freq;
 
 			for (int i = 0; i < M; ++i) {
-				in_grad[k*M + i] += g * out[i] - in_l2  * in[i];
+				in_grad[k*M + i] += g * out[i] - l2 * z[k] * lr * in[i];
 				out_grad[i]      += g * in[i];
 			}
 		}

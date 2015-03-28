@@ -29,9 +29,11 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		n_senses = var_init_z!(vm, x, z)
 		senses += n_senses
 		max_senses = max(max_senses, n_senses)
-		for j in max(1, i - window):min(N, i + window) #
-			if i == j continue end
-			var_update_z!(vm, x, doc[j], z)
+		if T(vm) > 1
+			for j in max(1, i - window):min(N, i + window) #
+				if i == j continue end
+				var_update_z!(vm, x, doc[j], z)
+			end
 		end
 		subtract!(z, maximum(z))
 		exp!(z)
@@ -41,8 +43,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 			if i == j continue end
 			y = doc[j]
 
-			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, sense_treshold, 
-				total_words, L2)
+			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, sense_treshold, L2)
 
 			total_ll[1] += ll
 			total_ll[2] += 1
@@ -69,7 +70,7 @@ end
 function in_place_update!{Tw <: Integer}(vm::VectorModel,
 		x::Tw, y::Tw, z::DenseArray{Float64}, lr::Float64,
 		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, sense_treshold::Float64,
-		total_freq::Float64, l2::Float64=0.)
+		l2::Float64=0.)
 
 	return ccall((:inplace_update, "superlib"), Float32,
 		(Ptr{Float32}, Ptr{Float32},
@@ -77,15 +78,13 @@ function in_place_update!{Tw <: Integer}(vm::VectorModel,
 			Int,
 			Ptr{Int32}, Ptr{Int8}, Int64,
 			Ptr{Float32}, Ptr{Float32},
-			Float32, Float32, 
-			Ptr{Float32}, Float32, Float32, Float32),
+			Float32, Float32, Float32),
 		sdata(vm.In), sdata(vm.Out),
 			M(vm), T(vm), z,
 			x,
 			view(vm.path, :, y), view(vm.code, :, y), size(vm.code, 1),
 			in_grad, out_grad,
-			float32(lr), float32(sense_treshold), 
-			vm.node_freqs, vm.frequencies[x], total_freq, l2)
+			float32(lr), float32(sense_treshold), l2)
 end
 
 function var_init_z!(vm::VectorModel, x::Integer, z::DenseArray{Float64})
