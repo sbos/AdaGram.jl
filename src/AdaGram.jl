@@ -135,7 +135,7 @@ export vec, closest_words
 export finalize!
 export save_model, read_from_file, dict_from_file, build_from_file
 export disambiguate, write_dictionary
-export likelihood
+export likelihood, parallel_likelihood
 export expected_pi!, expected_pi
 export load_model
 

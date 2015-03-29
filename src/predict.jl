@@ -91,3 +91,49 @@ function likelihood(vm::VectorModel, dict::Dictionary, path::String,
 	close(f)
 	return ll
 end
+
+function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
+		window_length::Int; batch::Int=16777216)
+	nbytes = filesize(path)
+
+	words_read = shared_zeros(Int64, (1,))
+	total_ll = shared_zeros(Float64, (2,))
+
+	function do_work(id::Int)
+		file = open(path)
+
+		bytes_per_worker = convert(Int, floor(nbytes / nworkers()))
+
+		start_pos = bytes_per_worker * (id-1)
+		end_pos = start_pos+bytes_per_worker
+
+		seek(file, start_pos)
+		align(file)
+		buffer = zeros(Int32, batch)
+		while true
+			doc = read_words(file, dict, buffer, batch, end_pos)
+
+			println("$(length(doc)) words read, $(position(file))/$end_pos")
+			if length(doc) == 0 
+				break
+			end
+
+			ll, N = likelihood(vm, doc, window_length)
+			total_ll[1] += ll
+			total_ll[2] += N
+		end
+
+		close(file)
+	end
+
+	refs = Array(RemoteRef, nworkers())
+	for i in 1:nworkers()
+		refs[i] = remotecall(i+1, do_work, i)
+	end
+
+	for i in 1:nworkers()
+		fetch(refs[i])
+	end
+
+	return total_ll[1] / total_ll[2]
+end
