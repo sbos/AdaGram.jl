@@ -2,6 +2,14 @@
 
 Adaptive Skip-gram (AdaGram) model is a nonparametric extension of famous Skip-gram model implemented in word2vec software which  is able to learn multiple representations per word capturing different word meanings. This projects implements AdaGram in Julia language.
 
+## Installation
+
+AdaGram is not in the julia package repository yet, so it should be installed in the following way:
+```
+Pkg.clone("https://github.com/sbos/AdaGram.jl.git")
+Pkg.build("AdaGram")
+```
+
 ## Training a model
 
 The most straightforward way to train a model is to use `train.sh` script. If you run it with no parameters passed or with `--help` option, it will print usage information:
