@@ -62,12 +62,12 @@ AdaGram will assume that provided word frequencies are actually obtained from tr
 First, load the model and the dictionary:
 ```
 julia> using AdaGram
-julia> vm, dict = load_model(“PATH_TO_THE_MODEL”);
+julia> vm, dict = load_model("PATH_TO_THE_MODEL");
 ```
 
 To examine how many prototypes were learned for a word, use `expected_pi` function:
 ```
-julia> expected_pi(vm, dict.word2id[“apple”])
+julia> expected_pi(vm, dict.word2id["apple"])
 30-element Array{Float64,1}:
  0.341832   
  0.658164   
@@ -80,37 +80,37 @@ julia> expected_pi(vm, dict.word2id[“apple”])
  1.75725e-12
  ⋮          
 ```
-This function returns a `--prototypes`-sized array with prior probability of each prototype. As one may see, in this example only first two prototypes have probabilities significantly larger than zero, and thus we may conclude that only two meanings of word “apple” were discovered. 
+This function returns a `--prototypes`-sized array with prior probability of each prototype. As one may see, in this example only first two prototypes have probabilities significantly larger than zero, and thus we may conclude that only two meanings of word "apple" were discovered. 
 We may examine each prototype by looking at its 10 nearest neighbours:
 ```
-julia> nearest_neighbors(vm, dict, “apple”, 1, 10)
+julia> nearest_neighbors(vm, dict, "apple", 1, 10)
 10-element Array{(Any,Any,Any),1}:
- (“almond”,1,0.70396507f0)    
- (“cherry”,2,0.69193166f0)    
- (“plum”,1,0.690269f0)        
- (“apricot”,1,0.6882005f0)    
- (“orange”,4,0.6739181f0)     
- (“pecan”,1,0.6662803f0)      
- (“pomegranate”,1,0.6580653f0)
- (“blueberry”,1,0.6509351f0)  
- (“pear”,1,0.6484747f0)       
- (“peach”,1,0.6313036f0)   
-julia> nearest_neighbors(vm, dict, “apple”, 2, 10)
+ ("almond",1,0.70396507f0)    
+ ("cherry",2,0.69193166f0)    
+ ("plum",1,0.690269f0)        
+ ("apricot",1,0.6882005f0)    
+ ("orange",4,0.6739181f0)     
+ ("pecan",1,0.6662803f0)      
+ ("pomegranate",1,0.6580653f0)
+ ("blueberry",1,0.6509351f0)  
+ ("pear",1,0.6484747f0)       
+ ("peach",1,0.6313036f0)   
+julia> nearest_neighbors(vm, dict, "apple", 2, 10)
 10-element Array{(Any,Any,Any),1}:
- (“macintosh”,1,0.79053026f0)     
- (“iifx”,1,0.71349466f0)          
- (“iigs”,1,0.7030192f0)           
- (“computers”,1,0.6952761f0)      
- (“kaypro”,1,0.6938647f0)         
- (“ipad”,1,0.6914306f0)           
- (“pc”,4,0.6801078f0)             
- (“ibm”,1,0.66797054f0)           
- (“powerpc-based”,1,0.66319686f0) 
- (“ibm-compatible”,1,0.66120595f0)
+ ("macintosh",1,0.79053026f0)     
+ ("iifx",1,0.71349466f0)          
+ ("iigs",1,0.7030192f0)           
+ ("computers",1,0.6952761f0)      
+ ("kaypro",1,0.6938647f0)         
+ ("ipad",1,0.6914306f0)           
+ ("pc",4,0.6801078f0)             
+ ("ibm",1,0.66797054f0)           
+ ("powerpc-based",1,0.66319686f0) 
+ ("ibm-compatible",1,0.66120595f0)
 ```
-Now if we provide a context for word “apple” we may obtain posterior probability of each prototype:
+Now if we provide a context for word "apple" we may obtain posterior probability of each prototype:
 ```
-julia> disambiguate(vm, dict, “apple”, split(“new iphone was announced today”))
+julia> disambiguate(vm, dict, "apple", split("new iphone was announced today"))
 30-element Array{Float64,1}:
  1.27888e-5
  0.999987  
@@ -122,7 +122,7 @@ julia> disambiguate(vm, dict, “apple”, split(“new iphone was announced tod
  0.0       
  0.0       
  ⋮     
-julia> disambiguate(vm, dict, “apple”, split(“fresh tasty breakfast”))
+julia> disambiguate(vm, dict, "apple", split("fresh tasty breakfast"))
 30-element Array{Float64,1}:
  0.999977  
  2.30527e-5
@@ -135,7 +135,7 @@ julia> disambiguate(vm, dict, “apple”, split(“fresh tasty breakfast”))
  0.0       
  ⋮         
 ```
-As one may see, model correctly estimated probabilities of each sense with quite large confidence. Vector corresponding to second prototype of word “apple” can be obtained from `vm.In[:, 2, dict.word2id[“apple”]]` and then used as context-aware features of word “apple”.
+As one may see, model correctly estimated probabilities of each sense with quite large confidence. Vector corresponding to second prototype of word "apple" can be obtained from `vm.In[:, 2, dict.word2id["apple"]]` and then used as context-aware features of word "apple".
 
 Plase refer to [API documentation](https://github.com/sbos/AdaGram.jl/wiki/API) for more detailed usage info.
 ## Future work
