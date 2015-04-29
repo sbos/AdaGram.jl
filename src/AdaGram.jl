@@ -77,8 +77,8 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 
 	code[:] = -1
 
-	In = shared_rand((M, T, V), float32(M))
-	Out = shared_rand((M, V), float32(M))
+	In =  shared_zeros(Float32, (M, T, V)) 
+	Out = shared_zeros(Float32, (M, V))
 
 	counts = shared_zeros(Float32, (T, V))
 
