@@ -119,8 +119,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 			end
 
 			ll, N = likelihood(vm, doc, window_length)
-			total_ll[1] += ll
-			total_ll[2] += N
+			return ll, N
 		end
 
 		close(file)
@@ -132,7 +131,9 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 	end
 
 	for i in 1:nworkers()
-		fetch(refs[i])
+		ll, N = fetch(refs[i])
+		total_ll[1] += ll
+		total_ll[2] += N
 	end
 
 	return total_ll[1] / total_ll[2]
