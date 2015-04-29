@@ -1,5 +1,5 @@
 function likelihood(vm::VectorModel, doc::DenseArray{Tw},
-		window_length::Int)
+		window_length::Int, min_prob::Float64=1e-5)
 
 	N = length(doc)
 
@@ -21,10 +21,10 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 
 			local_ll = 0.
 			for s in 1:T(vm)
-				if z[s] < 1e-5 continue end
+				if z[s] < min_prob continue end
 				In = view(vm, x, s)
 
-				local_ll += z[s] * exp(log_skip_gram(vm, x, s, y))
+				local_ll += z[s] * exp(float64(log_skip_gram(vm, x, s, y)))
 			end
 			ll += log(local_ll)
 
@@ -32,29 +32,6 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 		end
 	end
 	return ll, n
-end
-
-function skip_gram{Tw <: Integer}(vm::VectorModel, x::Tw, context::AbstractArray{Tw},
-		z::DenseArray{Float64}=zeros(T(vm)))
-	ll = 0.
-	expected_pi!(z, vm, x)
-	for y in context
-		for s in 1:T(vm)
-			if z[s] < 1e-5 continue end
-			In = view(vm, x, s)
-
-			output = vm.outputs[y]
-			ll += z[s] * exp(ccall((:skip_gram, "superlib"), Float32,
-			(Ptr{Float32}, Ptr{Float32},
-				Int,
-				Ptr{Int}, Ptr{Int8}, Int),
-			In, sdata(vm.Out),
-				M(vm),
-				output.path, output.code, length(output)))
-		end
-	end
-
-	return ll / length(context)
 end
 
 function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
@@ -81,8 +58,7 @@ function text_likelihood(vm::VectorModel, dict::Dictionary, s::String,
 	return ll / j
 end
 
-export text_likelihood, skip_gram
-
+export text_likelihood
 
 function likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		window_length::Int; batch::Int=16777216)
@@ -93,7 +69,7 @@ function likelihood(vm::VectorModel, dict::Dictionary, path::String,
 end
 
 function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
-		window_length::Int; batch::Int=16777216)
+		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
@@ -118,7 +94,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 				break
 			end
 
-			ll, N = likelihood(vm, doc, window_length)
+			ll, N = likelihood(vm, doc, window_length, min_prob)
 			return ll, N
 		end
 
