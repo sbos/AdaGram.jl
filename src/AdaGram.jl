@@ -67,10 +67,6 @@ function shared_zeros{T}(::Type{T}, dims::Tuple)
 	return S
 end
 
-function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::Float64=1e-2, 
-		d::Float64=0.)
-	path = shared_zeros(Int32, (max_length, V))
-	code = shared_zeros(Int8, (max_length, V))
 view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
 view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 

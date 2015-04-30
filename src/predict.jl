@@ -102,9 +102,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 			doc = read_words(file, dict, buffer, batch, end_pos)
 
 			println("$(length(doc)) words read, $(position(file))/$end_pos")
-			if length(doc) == 0 
-				break
-			end
+			if length(doc) == 0 break end
 
 			push!(local_stats, likelihood(vm, doc, window_length, min_prob))
 		end
