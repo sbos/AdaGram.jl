@@ -18,6 +18,59 @@ import Base.vec
 
 test(node::HierarchicalSoftmaxNode) = node.parent
 
+type Dictionary
+	word2id::Dict{String, Tw}
+	id2word::Array{String}
+
+	function Dictionary(id2word::Array{String})
+		word2id = Dict{String, Int}()
+		for v in 1:length(id2word)
+			push!(word2id, id2word[v], v)
+		end
+		return new(word2id, id2word)
+	end
+end
+
+type VectorModel
+	frequencies::DenseArray{Int64}
+	code::DenseArray{Int8, 2}
+	path::DenseArray{Int32, 2}
+	In::DenseArray{Tsf, 3}
+	Out::DenseArray{Tsf, 2}
+	alpha::Float64
+	d::Float64
+	counts::DenseArray{Float32, 2}
+end
+
+M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
+T(vm::VectorModel) = size(vm.In, 2) #number of meanings
+V(vm::VectorModel) = size(vm.In, 3) #number of words
+
+function shared_rand{T}(dims::Tuple, norm::T)
+	S = SharedArray(T, dims; init = S -> begin
+			chunk = localindexes(S)
+			chunk_size = length(chunk)
+			data = rand(chunk_size)
+			subtract!(data, 0.5)
+			divide!(data, norm)
+			S[chunk] = data
+		end)
+	return S
+end
+
+function shared_zeros{T}(::Type{T}, dims::Tuple)
+	S = SharedArray(T, dims; init = S -> begin
+			chunk = localindexes(S)
+			chunk_size = length(chunk)
+			S[chunk] = 0.
+		end)
+	return S
+end
+
+function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::Float64=1e-2, 
+		d::Float64=0.)
+	path = shared_zeros(Int32, (max_length, V))
+	code = shared_zeros(Int8, (max_length, V))
 view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
 view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 
@@ -120,6 +173,7 @@ end
 
 view(vm::VectorModel, v::Integer, s::Integer) = view(vm.In, :, s, v)
 
+include("kahan.jl")
 include("skip_gram.jl")
 include("stick_breaking.jl")
 include("textutil.jl")
