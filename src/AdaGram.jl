@@ -16,8 +16,6 @@ import ArrayViews.view
 import ArrayViews.Subs
 import Base.vec
 
-test(node::HierarchicalSoftmaxNode) = node.parent
-
 type Dictionary
 	word2id::Dict{String, Tw}
 	id2word::Array{String}

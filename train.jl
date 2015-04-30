@@ -100,4 +100,4 @@ inplace_train_vectors!(vm, dict, args["train"], window;
   threshold=args["subsample"], context_cut=args["context-cut"],
   epochs=args["epochs"], init_count=args["init-count"], sense_treshold=args["sense-treshold"])
 
-save_model(args["output"], vm, dict)
+save_model(args["output"], vm, dict, args["sense-treshold"])
