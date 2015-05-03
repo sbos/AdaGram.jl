@@ -10,7 +10,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 	#counting number of word predictions in the batch
 	n = 0
 	if N >= 2 * window_length
-		n = 2 * window_length * N - window_length (window_length + 1)
+		n = 2 * window_length * N - window_length * (window_length + 1)
 	else
 		for i in 1:N
 			for j in max(1, i - window):min(N, i + window)
