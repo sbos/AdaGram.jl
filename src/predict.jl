@@ -13,7 +13,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 		n = 2 * window_length * N - window_length * (window_length + 1)
 	else
 		for i in 1:N
-			for j in max(1, i - window):min(N, i + window)
+			for j in max(1, i - window_length):min(N, i + window_length)
 				if i == j continue end
 				n += 1
 			end
