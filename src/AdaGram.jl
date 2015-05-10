@@ -44,57 +44,8 @@ M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
 T(vm::VectorModel) = size(vm.In, 2) #number of meanings
 V(vm::VectorModel) = size(vm.In, 3) #number of words
 
-function shared_rand{T}(dims::Tuple, norm::T)
-	S = SharedArray(T, dims; init = S -> begin
-			chunk = localindexes(S)
-			chunk_size = length(chunk)
-			data = rand(chunk_size)
-			subtract!(data, 0.5)
-			divide!(data, norm)
-			S[chunk] = data
-		end)
-	return S
-end
-
-function shared_zeros{T}(::Type{T}, dims::Tuple)
-	S = SharedArray(T, dims; init = S -> begin
-			chunk = localindexes(S)
-			chunk_size = length(chunk)
-			S[chunk] = 0.
-		end)
-	return S
-end
-
 view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
 view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
-
-type Dictionary
-	word2id::Dict{String, Tw}
-	id2word::Array{String}
-
-	function Dictionary(id2word::Array{String})
-		word2id = Dict{String, Int}()
-		for v in 1:length(id2word)
-			push!(word2id, id2word[v], v)
-		end
-		return new(word2id, id2word)
-	end
-end
-
-type VectorModel
-	frequencies::DenseArray{Int64}
-	code::DenseArray{Int8, 2}
-	path::DenseArray{Int32, 2}
-	In::DenseArray{Tsf, 3}
-	Out::DenseArray{Tsf, 2}
-	alpha::Float64
-	d::Float64
-	counts::DenseArray{Float32, 2}
-end
-
-M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
-T(vm::VectorModel) = size(vm.In, 2) #number of meanings
-V(vm::VectorModel) = size(vm.In, 3) #number of words
 
 function shared_rand{T}(dims::Tuple, norm::T)
 	S = SharedArray(T, dims; init = S -> begin
