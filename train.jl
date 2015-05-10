@@ -94,7 +94,9 @@ vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
   args["min-freq"], args["remove-top-k"], stopwords)
 println("Done!")
 
-vm.alpha[:] = args["alpha"]
+for v in 1:V(vm)
+  vm.alpha[v] = args["alpha"]
+end
 if args["balance-alpha"] != nothing
   target_freq = if args["balance-alpha"] == "median"
     vm.frequencies[int(ceil(length(V(vm) / 2)))]
