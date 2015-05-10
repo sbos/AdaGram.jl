@@ -106,6 +106,7 @@ function save_model(path::String, vm::VectorModel, dict::Dictionary, min_prob=1e
 	for v in 1:V(vm)
 		nsenses = expected_pi!(z, vm, v, min_prob)
 		println(file, dict.id2word[v])
+		println(file, vm.alpha[v])
 		println(file, nsenses)
 		for k in 1:T(vm)
 			if z[k] < min_prob continue end
@@ -137,6 +138,7 @@ function load_model(path::String)
 	id2word = Array(String, 0)
 	for v in 1:V(vm)
 		word = strip(readline(file))
+		vm.alpha[v] = float32(readline(file))
 		nsenses = int(readline(file))
 		push!(id2word, word)
 

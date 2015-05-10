@@ -35,7 +35,7 @@ type VectorModel
 	path::DenseArray{Int32, 2}
 	In::DenseArray{Tsf, 3}
 	Out::DenseArray{Tsf, 2}
-	alpha::Float64
+	alpha::DenseArray{Float32, 1}
 	d::Float64
 	counts::DenseArray{Float32, 2}
 end
@@ -82,7 +82,10 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 
 	frequencies = shared_zeros(Int64, (V,))
 
-	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
+	alpha_ = shared_zeros(Float32, (V,))
+	alpha_[:] = alpha
+
+	return VectorModel(frequencies, code, path, In, Out, alpha_, d, counts)
 end
 
 function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1e-2, 
@@ -113,7 +116,10 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 	frequencies = shared_zeros(Int64, (V,))
 	frequencies[:] = freqs
 
-	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
+	alpha_ = shared_zeros(Float32, (V,))
+	alpha_[:] = alpha
+
+	return VectorModel(frequencies, code, path, In, Out, alpha_, d, counts)
 end
 
 view(vm::VectorModel, v::Integer, s::Integer) = view(vm.In, :, s, v)

@@ -71,6 +71,9 @@ s = ArgParseSettings()
     help = "minimal probability of a meaning to contribute into gradients"
     arg_type = Float64
     default = 1e-10
+  "--balance-alpha"
+    help = "use \"average\" or \"median\" to select zero-point for balancing"
+    arg_type = String
 end
 
 args = parse_args(ARGS, s)
@@ -91,7 +94,20 @@ vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
   args["min-freq"], args["remove-top-k"], stopwords)
 println("Done!")
 
-vm.alpha = args["alpha"]
+vm.alpha[:] = args["alpha"]
+if args["balance-alpha"] != nothing
+  target_freq = if args["balance-alpha"] == "median"
+    vm.frequencies[int(ceil(length(V(vm) / 2)))]
+  elseif args["balance-alpha"] == "average"
+    mean(vm.frequencies)
+  else
+    error("Unknown value of parameter")
+  end
+
+  for v in 1:V(vm)
+    vm.alpha[v] = log(target_freq) / log(max(e, vm.frequencies[v])) * args["alpha"]
+  end
+end
 vm.d = args["d"]
 
 window = args["window"]
