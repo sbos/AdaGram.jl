@@ -92,7 +92,7 @@ end
 function save_model(path::String, vm::VectorModel, dict::Dictionary, min_prob=1e-5)
 	file = open(path, "w")
 	println(file, V(vm), " ", M(vm), " ", T(vm))
-	println(file, vm.alpha, " ", vm.d)
+	println(file, vm.d)
 	println(file, size(vm.code, 1))
 
 	write(file, vm.frequencies)
@@ -123,7 +123,7 @@ function load_model(path::String)
 	file = open(path)
 
 	_V, _M, _T = map(int, split(readline(file)))
-	alpha, d = map(float64 , split(readline(file)))
+	d = float64(readline(file))
 	max_length = int(readline(file))
 
 	vm = VectorModel(max_length, _V, _M, _T, alpha, d)
