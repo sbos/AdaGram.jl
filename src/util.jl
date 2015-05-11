@@ -126,7 +126,7 @@ function load_model(path::String)
 	d = float64(readline(file))
 	max_length = int(readline(file))
 
-	vm = VectorModel(max_length, _V, _M, _T, alpha, d)
+	vm = VectorModel(max_length, _V, _M, _T, 0., d)
 	read!(file, sdata(vm.frequencies))
 	read!(file, sdata(vm.code))
 	read!(file, sdata(vm.path))
