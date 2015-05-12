@@ -1,6 +1,5 @@
 module AdaGram
 
-using Devectorize
 using ArrayViews
 using NumericExtensions
 
