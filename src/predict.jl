@@ -61,24 +61,6 @@ function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
 	return ll / j
 end
 
-function text_likelihood(vm::VectorModel, dict::Dictionary, s::String,
-		window_length::Int, batch::Int=16777216)
-	buffer = zeros(Int32, batch)
-	doc = read_words(s, dict, buffer, length(buffer), -1)
-	ll, j = likelihood(vm, doc, window_length)
-	return ll / j
-end
-
-export text_likelihood
-
-function likelihood(vm::VectorModel, dict::Dictionary, path::String,
-		window_length::Int; batch::Int=16777216)
-	f = open(path)
-	ll = likelihood(vm, dict, f, window_length; batch = batch)
-	close(f)
-	return ll
-end
-
 function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216)
 	nbytes = filesize(path)
