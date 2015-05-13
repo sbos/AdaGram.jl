@@ -7,18 +7,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 	z = zeros(T(vm))
 	ll = Kahan(Float64)
 
-	#counting number of word predictions in the batch
-	n = 0
-	if N >= 2 * window_length
-		n = 2 * window_length * N - window_length * (window_length + 1)
-	else
-		for i in 1:N
-			for j in max(1, i - window_length):min(N, i + window_length)
-				if i == j continue end
-				n += 1
-			end
-		end
-	end
+	n = 1
 
 	for i in 1:N
 		x = doc[i]
@@ -40,6 +29,8 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 				add!(local_ll, z[s] * exp(float64(log_skip_gram(vm, x, s, y))))
 			end
 			add!(ll, 1. / n * (log(sum(local_ll)) - sum(ll)))
+
+			n += 1
 		end
 	end
 	return sum(ll), n
