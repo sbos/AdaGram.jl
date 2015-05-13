@@ -7,7 +7,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 	z = zeros(T(vm))
 	ll = Kahan(Float64)
 
-	n = 1
+	n = 0
 
 	for i in 1:N
 		x = doc[i]
@@ -19,6 +19,8 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end
+
+			n += 1
 			y = doc[j]
 
 			local_ll = Kahan(Float64)
@@ -29,8 +31,6 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 				add!(local_ll, z[s] * exp(float64(log_skip_gram(vm, x, s, y))))
 			end
 			add!(ll, 1. / n * (log(sum(local_ll)) - sum(ll)))
-
-			n += 1
 		end
 	end
 	return sum(ll), n
