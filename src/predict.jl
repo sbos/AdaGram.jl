@@ -5,9 +5,8 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 	if N == 1 return (0., 0) end
 
 	z = zeros(T(vm))
-	ll = Kahan(Float64)
 
-	n = 0
+	m = MeanCounter(Float64)
 
 	for i in 1:N
 		x = doc[i]
@@ -30,10 +29,10 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 
 				add!(local_ll, z[s] * exp(float64(log_skip_gram(vm, x, s, y))))
 			end
-			add!(ll, 1. / n * (log(sum(local_ll)) - sum(ll)))
+			add!(m, log(sum(local_ll)))
 		end
 	end
-	return sum(ll), n
+	return mean(m), m.n
 end
 
 function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
