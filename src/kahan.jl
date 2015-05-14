@@ -29,4 +29,8 @@ function add!{T <: FloatingPoint}(m::MeanCounter{T}, x::T)
 	return m.mean
 end
 
+import Base.mean
+
+mean(m::MeanCounter) = sum(m.mean)
+
 export Kahan, MeanCounter, add!, sum
