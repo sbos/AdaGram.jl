@@ -19,7 +19,6 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end
 
-			n += 1
 			y = doc[j]
 
 			local_ll = Kahan(Float64)
