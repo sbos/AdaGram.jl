@@ -33,4 +33,4 @@ import Base.mean
 
 mean(m::MeanCounter) = sum(m.mean)
 
-export Kahan, MeanCounter, add!, sum
+export Kahan, MeanCounter, add!, sum, mean
