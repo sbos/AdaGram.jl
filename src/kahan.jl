@@ -23,7 +23,7 @@ end
 
 MeanCounter{T <: FloatingPoint}(::Type{T}) = MeanCounter{T}(0, Kahan(T))
 
-function add!{T <: FloatingPoint}{m::MeanCounter{T}, x::T}
+function add!{T <: FloatingPoint}(m::MeanCounter{T}, x::T)
 	m.n += 1
 	add!(m.mean, (x - m.mean) / m.n)
 	return m.mean
