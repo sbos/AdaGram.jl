@@ -25,6 +25,10 @@ s = ArgParseSettings()
     help = "minimum probability of a prototype"
     arg_type = Float64
     default = 0.005
+  "--remove-top-K"
+    help = "ignore K most frequent words"
+    arg_type = Int
+    default = 0
 end
 
 args = parse_args(ARGS, s)
@@ -35,4 +39,4 @@ require("AdaGram.jl")
 using AdaGram
 
 vm, dict = load_model(args["model"])
-println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"]))
+println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"]; remove_top_k=args["remove-top-K"]))

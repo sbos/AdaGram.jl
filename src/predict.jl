@@ -51,7 +51,7 @@ function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
 end
 
 function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
-		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216)
+		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216, remove_top_k::Int=0)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
@@ -71,6 +71,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		local_stats = Array((Float64, Int64), 0)
 		while true
 			doc = read_words(file, dict, buffer, batch, end_pos)
+			doc = filter(x -> x > remove_top_k, doc)
 
 			println("$(length(doc)) words read, $(position(file))/$end_pos")
 			if length(doc) == 0 break end
