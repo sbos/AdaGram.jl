@@ -1,4 +1,5 @@
-function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{String}=Set{String}())
+function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{String}=Set{String}(); 
+		regex::Regex=r"")
 	fin = open(vocab_path)
 	freqs = Array(Int64, 0)
 	id2word = Array(String, 0)
@@ -6,7 +7,7 @@ function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{St
 		try
 			word, freq = split(readline(fin))
 			freq_num = int64(freq)
-			if freq_num < min_freq || word in stopwords continue end
+			if freq_num < min_freq || word in stopwords || !ismatch(regex, word) continue end
 			push!(id2word, word)
 			push!(freqs, freq_num)
 		catch e
@@ -18,8 +19,9 @@ function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{St
 end
 
 function read_from_file(vocab_path::String, M::Int, T::Int, min_freq::Int=5, 
-	removeTopK::Int=70, stopwords::Set{String}=Set{String}())
-	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords)
+	removeTopK::Int=70, stopwords::Set{String}=Set{String}();
+	regex::Regex=r"")
+	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords; regex=regex)
 
 	S = sortperm(freqs, rev=true)
 	freqs = freqs[S[removeTopK+1:end]]

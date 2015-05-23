@@ -1,6 +1,5 @@
 module AdaGram
 
-using Devectorize
 using ArrayViews
 using NumericExtensions
 
@@ -15,11 +14,6 @@ include("softmax.jl")
 import ArrayViews.view
 import ArrayViews.Subs
 import Base.vec
-
-test(node::HierarchicalSoftmaxNode) = node.parent
-
-view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
-view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 
 type Dictionary
 	word2id::Dict{String, Tw}
@@ -49,6 +43,9 @@ M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
 T(vm::VectorModel) = size(vm.In, 2) #number of meanings
 V(vm::VectorModel) = size(vm.In, 3) #number of words
 
+view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
+view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
+
 function shared_rand{T}(dims::Tuple, norm::T)
 	S = SharedArray(T, dims; init = S -> begin
 			chunk = localindexes(S)
@@ -77,8 +74,8 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 
 	code[:] = -1
 
-	In = shared_rand((M, T, V), float32(M))
-	Out = shared_rand((M, V), float32(M))
+	In =  shared_zeros(Float32, (M, T, V)) 
+	Out = shared_zeros(Float32, (M, V))
 
 	counts = shared_zeros(Float32, (T, V))
 
@@ -120,6 +117,7 @@ end
 
 view(vm::VectorModel, v::Integer, s::Integer) = view(vm.In, :, s, v)
 
+include("kahan.jl")
 include("skip_gram.jl")
 include("stick_breaking.jl")
 include("textutil.jl")
@@ -135,7 +133,7 @@ export vec, closest_words
 export finalize!
 export save_model, read_from_file, dict_from_file, build_from_file
 export disambiguate, write_dictionary
-export likelihood
+export likelihood, parallel_likelihood
 export expected_pi!, expected_pi
 export load_model
 

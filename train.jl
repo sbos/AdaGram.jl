@@ -75,6 +75,10 @@ s = ArgParseSettings()
     help = "L2-regularization weight"
     arg_type = Float64
     default = 0.
+  "--regex"
+    help = "ignore words not matching provided regex"
+    arg_type = String
+    default = ""
 end
 
 args = parse_args(ARGS, s)
@@ -92,7 +96,7 @@ end
 
 print("Building dictionary... ")
 vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
-  args["min-freq"], args["remove-top-k"], stopwords)
+  args["min-freq"], args["remove-top-k"], stopwords; regex=Regex(args["regex"]))
 println("Done!")
 
 vm.alpha = args["alpha"]
@@ -105,4 +109,4 @@ inplace_train_vectors!(vm, dict, args["train"], window;
   epochs=args["epochs"], init_count=args["init-count"], sense_treshold=args["sense-treshold"],
   L2=args["L2"])
 
-save_model(args["output"], vm, dict)
+save_model(args["output"], vm, dict, args["sense-treshold"])
