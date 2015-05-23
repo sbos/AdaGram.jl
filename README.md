@@ -38,6 +38,7 @@ Here is the description of all parameters:
 * `INIT-COUNT` is used for initialization of variational stick-breaking distribution. All prototypes are assigned with zero occurrences except first one which is assigned with `INIT-COUNT`. Zero value means that first prototype gets all occurrences.
 * `STOPWORDS` is a path to newline-separated file with list of words that must be ignored during the training
 * `SENSE-THRESHOLD` allows to sparse gradients and speed-up training. If the posterior probability of a prototype is blow that threshold then it won’t contribute to parameters’ gradients.
+* `REGEX` will be used to filter out words not matching with from the `DICTIONARY` provided
 * `train` — path to training text (see Format section below)
 * `dict` — path to dictionary file (see Format section below)
 * `output` — path for saving trained model.
