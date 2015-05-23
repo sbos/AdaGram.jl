@@ -20,8 +20,8 @@ usage: train.jl [--window WINDOW] [--workers WORKERS]
                 [--d D] [--subsample SUBSAMPLE] [--context-cut]
                 [--epochs EPOCHS] [--init-count INIT-COUNT]
                 [--stopwords STOPWORDS]
-                [--sense-treshold SENSE-TRESHOLD] [-h] train dict
-                output
+                [--sense-treshold SENSE-TRESHOLD] [--regex REGEX] [-h] 
+                train dict output
 ```
 Here is the description of all parameters:
 * `WINDOW` is a half-context size. Useful values are 3-10.
