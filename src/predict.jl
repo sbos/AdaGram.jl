@@ -71,7 +71,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		local_stats = Array((Float64, Int64), 0)
 		while true
 			doc = read_words(file, dict, buffer, batch, end_pos)
-			doc = filter(x -> x > remove_top_k, doc)
+			doc = filter(x -> x > remove_top_k, copy(doc))
 
 			println("$(length(doc)) words read, $(position(file))/$end_pos")
 			if length(doc) == 0 break end
