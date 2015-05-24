@@ -71,6 +71,10 @@ s = ArgParseSettings()
     help = "minimal probability of a meaning to contribute into gradients"
     arg_type = Float64
     default = 1e-10
+  "--regex"
+    help = "ignore words not matching provided regex"
+    arg_type = String
+    default = ""
 end
 
 args = parse_args(ARGS, s)
@@ -88,7 +92,7 @@ end
 
 print("Building dictionary... ")
 vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
-  args["min-freq"], args["remove-top-k"], stopwords)
+  args["min-freq"], args["remove-top-k"], stopwords; regex=Regex(args["regex"]))
 println("Done!")
 
 vm.alpha = args["alpha"]
