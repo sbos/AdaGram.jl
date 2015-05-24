@@ -29,6 +29,13 @@ s = ArgParseSettings()
     help = "ignore K most frequent words"
     arg_type = Int
     default = 0
+  "--batch"
+    help = "size of buffer read into memory"
+    arg_type = Int
+    default = 16777216
+  "--log"
+    help = "save intermediate averages to the file"
+    arg_type = String
 end
 
 args = parse_args(ARGS, s)
@@ -39,4 +46,5 @@ require("AdaGram.jl")
 using AdaGram
 
 vm, dict = load_model(args["model"])
-println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"]; remove_top_k=args["remove-top-K"]))
+println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"];
+  batch=args["batch"], log=args["log"], remove_top_k=args["remove-top-K"]))
