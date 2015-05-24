@@ -52,7 +52,7 @@ end
 
 function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216, 
-		log::Union(Nothing, String))
+		log::Union(Nothing, String)=nothing)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
