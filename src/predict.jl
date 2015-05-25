@@ -92,7 +92,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		append!(stats, fetch(refs[i]))
 	end
 
-	log_file = if log == nothing DevNull else open(log, "w") end
+	log_file = if log == nothing STDOUT else open(log, "w") end
 	total_n = 0
 	total_mean = Kahan(Float64)
 	for (ll, n) in stats
@@ -101,7 +101,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		d = ll - sum(total_mean)
 		add!(total_mean, n * d / total_n)
 	end
-	close(log_file)
+	if log_file != STDOUT close(log_file) end
 
 	return sum(total_mean)
 end
