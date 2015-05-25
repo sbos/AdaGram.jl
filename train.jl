@@ -75,6 +75,10 @@ s = ArgParseSettings()
     help = "L2-regularization weight"
     arg_type = Float64
     default = 0.
+  "--save-treshold"
+    help = "minimal probability of a meaning to save after training"
+    arg_type = Float64
+    default = 1e-3
   "--regex"
     help = "ignore words not matching provided regex"
     arg_type = String
@@ -109,4 +113,4 @@ inplace_train_vectors!(vm, dict, args["train"], window;
   epochs=args["epochs"], init_count=args["init-count"], sense_treshold=args["sense-treshold"],
   L2=args["L2"])
 
-save_model(args["output"], vm, dict, args["sense-treshold"])
+save_model(args["output"], vm, dict, args["save-treshold"])

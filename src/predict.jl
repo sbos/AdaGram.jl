@@ -51,7 +51,8 @@ function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
 end
 
 function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
-		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216)
+		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216, 
+		log::Union(Nothing, String)=nothing)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
@@ -91,13 +92,16 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		append!(stats, fetch(refs[i]))
 	end
 
+	log_file = if log == nothing STDOUT else open(log, "w") end
 	total_n = 0
 	total_mean = Kahan(Float64)
 	for (ll, n) in stats
 		total_n += n
+		println(log_file, ll)
 		d = ll - sum(total_mean)
 		add!(total_mean, n * d / total_n)
 	end
+	if log_file != STDOUT close(log_file) end
 
 	return sum(total_mean)
 end
