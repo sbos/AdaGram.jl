@@ -74,6 +74,14 @@ s = ArgParseSettings()
   "--balance-alpha"
     help = "use \"average\" or \"median\" to select zero-point for balancing"
     arg_type = String
+  "--save-treshold"
+    help = "minimal probability of a meaning to save after training"
+    arg_type = Float64
+    default = 1e-3
+  "--regex"
+    help = "ignore words not matching provided regex"
+    arg_type = String
+    default = ""
 end
 
 args = parse_args(ARGS, s)
@@ -91,7 +99,7 @@ end
 
 print("Building dictionary... ")
 vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
-  args["min-freq"], args["remove-top-k"], stopwords)
+  args["min-freq"], args["remove-top-k"], stopwords; regex=Regex(args["regex"]))
 println("Done!")
 
 for v in 1:V(vm)
@@ -118,4 +126,4 @@ inplace_train_vectors!(vm, dict, args["train"], window;
   threshold=args["subsample"], context_cut=args["context-cut"],
   epochs=args["epochs"], init_count=args["init-count"], sense_treshold=args["sense-treshold"])
 
-save_model(args["output"], vm, dict, args["sense-treshold"])
+save_model(args["output"], vm, dict, args["save-treshold"])

@@ -15,3 +15,22 @@ end
 
 import Base.sum
 sum(k::Kahan) = k.sum
+
+type MeanCounter{T <: FloatingPoint}
+	n::Int64
+	mean::Kahan{T}
+end
+
+MeanCounter{T <: FloatingPoint}(::Type{T}) = MeanCounter{T}(0, Kahan(T))
+
+function add!{T <: FloatingPoint}(m::MeanCounter{T}, x::T)
+	m.n += 1
+	add!(m.mean, (x - sum(m.mean)) / m.n)
+	return m.mean
+end
+
+import Base.mean
+
+mean(m::MeanCounter) = sum(m.mean)
+
+export Kahan, MeanCounter, add!, sum, mean

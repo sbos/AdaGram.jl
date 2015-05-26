@@ -25,6 +25,13 @@ s = ArgParseSettings()
     help = "minimum probability of a prototype"
     arg_type = Float64
     default = 0.005
+  "--batch"
+    help = "size of buffer read into memory"
+    arg_type = Int
+    default = 16777216
+  "--log"
+    help = "save intermediate averages to the file"
+    arg_type = String
 end
 
 args = parse_args(ARGS, s)
@@ -35,4 +42,5 @@ require("AdaGram.jl")
 using AdaGram
 
 vm, dict = load_model(args["model"])
-println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"]))
+println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"];
+  batch=args["batch"], log=args["log"]))

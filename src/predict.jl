@@ -5,20 +5,8 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 	if N == 1 return (0., 0) end
 
 	z = zeros(T(vm))
-	ll = Kahan(Float64)
 
-	#counting number of word predictions in the batch
-	n = 0
-	if N >= 2 * window_length
-		n = 2 * window_length * N - window_length * (window_length + 1)
-	else
-		for i in 1:N
-			for j in max(1, i - window_length):min(N, i + window_length)
-				if i == j continue end
-				n += 1
-			end
-		end
-	end
+	m = MeanCounter(Float64)
 
 	for i in 1:N
 		x = doc[i]
@@ -30,6 +18,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end
+
 			y = doc[j]
 
 			local_ll = Kahan(Float64)
@@ -39,10 +28,10 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 
 				add!(local_ll, z[s] * exp(float64(log_skip_gram(vm, x, s, y))))
 			end
-			add!(ll, 1. / n * (log(sum(local_ll)) - sum(ll)))
+			add!(m, log(sum(local_ll)))
 		end
 	end
-	return sum(ll), n
+	return mean(m), m.n
 end
 
 function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
@@ -62,7 +51,8 @@ function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
 end
 
 function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
-		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216)
+		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216, 
+		log::Union(Nothing, String)=nothing)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
@@ -102,13 +92,16 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
 		append!(stats, fetch(refs[i]))
 	end
 
+	log_file = if log == nothing STDOUT else open(log, "w") end
 	total_n = 0
 	total_mean = Kahan(Float64)
 	for (ll, n) in stats
 		total_n += n
+		println(log_file, ll)
 		d = ll - sum(total_mean)
 		add!(total_mean, n * d / total_n)
 	end
+	if log_file != STDOUT close(log_file) end
 
 	return sum(total_mean)
 end

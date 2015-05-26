@@ -1,6 +1,5 @@
 using Base.Collections
 using Base.Order
-using Devectorize
 
 type HierarchicalSoftmaxNode
 	parent::Int32
