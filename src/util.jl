@@ -3,11 +3,15 @@ function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{St
 	fin = open(vocab_path)
 	freqs = Array(Int64, 0)
 	id2word = Array(String, 0)
+	
+	push!(id2word, "*UNKNOWN*")
+	push!(freqs, 0)
+
 	while !eof(fin)
 		try
 			word, freq = split(readline(fin))
 			freq_num = int64(freq)
-			if freq_num < min_freq || word in stopwords || !ismatch(regex, word) continue end
+			if freq_num < min_freq || word in stopwords || !ismatch(regex, word) freqs[1] += freq_num; continue end
 			push!(id2word, word)
 			push!(freqs, freq_num)
 		catch e

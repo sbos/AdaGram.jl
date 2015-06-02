@@ -25,6 +25,9 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 		z[:] = 0.
 
+		if x == 1
+			z[1] = 1.
+		else
 		n_senses = var_init_z!(vm, x, z)
 		senses += n_senses
 		max_senses = max(max_senses, n_senses)
@@ -35,6 +38,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		subtract!(z, maximum(z))
 		exp!(z)
 		divide!(z, sum(z))
+		end
 
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end

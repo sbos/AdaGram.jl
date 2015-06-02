@@ -116,7 +116,7 @@ function read_words(f::IOStream, start_pos::Int64, end_pos::Int64,
     word = consume(words)
     id = get(dict.word2id, word, -1)
     if id == -1
-      continue
+      id = 1 #word is *UNKNOWN*
     elseif rand() < 1. - sqrt(threshold / (freqs[id] / total_words))
       words_read[1] += 1
       continue
