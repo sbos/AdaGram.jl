@@ -25,7 +25,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 		z[:] = 0.
 
-		if x == 1
+		if T(vm) == 1 || x == 1
 			z[1] = 1.
 		else
 		n_senses = var_init_z!(vm, x, z)

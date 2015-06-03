@@ -99,6 +99,8 @@ vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
   args["min-freq"], args["remove-top-k"], stopwords; regex=Regex(args["regex"]))
 println("Done!")
 
+println(dict.word2id["*UNKNOWN*"], " ", vm.frequencies[1])
+
 vm.alpha = args["alpha"]
 vm.d = args["d"]
 

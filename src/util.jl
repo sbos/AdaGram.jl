@@ -28,8 +28,8 @@ function read_from_file(vocab_path::String, M::Int, T::Int, min_freq::Int=5,
 	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords; regex=regex)
 
 	S = sortperm(freqs, rev=true)
-	freqs = freqs[S[removeTopK+1:end]]
-	id2word = id2word[S[removeTopK+1:end]]
+	#freqs = freqs[S[removeTopK+1:end]]
+	#id2word = id2word[S[removeTopK+1:end]]
 
 	return VectorModel(freqs, M, T), Dictionary(id2word)
 end
