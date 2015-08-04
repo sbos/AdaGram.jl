@@ -6,7 +6,7 @@ meanlog_mirror(a, b) = meanlog_beta(b, a)
 function expected_logpi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel, w::Tw, min_prob::Float64=1e-3)
 	if vm.alpha <= 0 
 		for k in 1:T(vm)
-			z[k] = log(vm.counts[k, w])
+			pi[k] = log(max(vm.counts[k, w], 0))
 		end
 		return T(vm)
 	end
@@ -36,7 +36,7 @@ function expected_pi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel,
 		w::Tw, min_prob=1e-3)
 	if vm.alpha <= 0 
 		for k in 1:T(vm)
-			z[k] = vm.counts[k, w]
+			pi[k] = max(vm.counts[k, w], 0)
 		end
 		subtract!(z, maximum(z))
 		divide!(z, sum(z))
