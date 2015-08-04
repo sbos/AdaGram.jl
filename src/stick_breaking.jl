@@ -4,6 +4,12 @@ mean_mirror(a, b) = mean_beta(b, a)
 meanlog_mirror(a, b) = meanlog_beta(b, a)
 
 function expected_logpi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel, w::Tw, min_prob::Float64=1e-3)
+	if vm.alpha <= 0 
+		for k in 1:T(vm)
+			z[k] = log(vm.counts[k, w])
+		end
+		return T(vm)
+	end
 	r = 0.
 	x = 1.
 	senses = 0
@@ -28,6 +34,14 @@ end
 
 function expected_pi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel, 
 		w::Tw, min_prob=1e-3)
+	if vm.alpha <= 0 
+		for k in 1:T(vm)
+			z[k] = vm.counts[k, w]
+		end
+		subtract!(z, maximum(z))
+		divide!(z, sum(z))
+		return T(vm)
+	end
 	r = 1.
 	senses = 0
 	ts = sum(view(vm.counts, :, w))

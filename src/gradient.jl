@@ -112,6 +112,10 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::String,
 		log_path::Union(String, Nothing) = nothing, threshold::Float64 = Inf,
 		context_cut::Bool = true, epochs::Int = 1, init_count::Float64=-1, sense_treshold::Float64=1e-32)
 	for w in 1:V(vm)
+		if vm.alpha <= 0 
+			vm.counts[:, w] = vm.frequencies[w] / T(vm)
+			continue
+		end
 		vm.counts[1, w] = init_count > 0 ? init_count : vm.frequencies[w]
 	end
 
