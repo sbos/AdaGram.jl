@@ -103,7 +103,7 @@ function var_update_counts!(vm::VectorModel, x::Integer,
 		local_counts::DenseArray{Float64}, lr::Float64)
 	counts = view(vm.counts, :, x)
 	for k in 1:T(vm)
-		counts[k] = local_counts[k] #lr * (local_counts[k] * vm.frequencies[x] - counts[k])
+		counts[k] += lr * (local_counts[k] * vm.frequencies[x] - counts[k])
 	end
 end
 

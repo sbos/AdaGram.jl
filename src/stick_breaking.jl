@@ -40,7 +40,13 @@ function expected_pi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel,
 		end
 		subtract!(pi, maximum(pi))
 		divide!(pi, sum(pi))
-		return T(vm)
+		nsenses = 0
+		for k in 1:T(vm)
+			if pi[k] >= min_prob
+				nsenses += 1
+			end
+		end
+		return nsenses
 	end
 	r = 1.
 	senses = 0
