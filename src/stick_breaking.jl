@@ -38,8 +38,8 @@ function expected_pi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel,
 		for k in 1:T(vm)
 			pi[k] = max(vm.counts[k, w], 0)
 		end
-		subtract!(z, maximum(z))
-		divide!(z, sum(z))
+		subtract!(pi, maximum(pi))
+		divide!(pi, sum(pi))
 		return T(vm)
 	end
 	r = 1.
