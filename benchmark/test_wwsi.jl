@@ -1,5 +1,4 @@
-require("./src/word2vec.jl")
-using word2vec
+using AdaGram
 
 type Context
     position::Int

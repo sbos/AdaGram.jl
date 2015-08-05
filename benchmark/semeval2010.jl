@@ -1,6 +1,4 @@
-require("src/word2vec.jl")
-
-using word2vec
+using AdaGram
 
 vm, dict = load_model(ARGS[1])
 window = int(ARGS[2])
