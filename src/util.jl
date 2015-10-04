@@ -1,8 +1,8 @@
-function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{String}=Set{String}(); 
+function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords::Set{AbstractString}=Set{AbstractString}(); 
 		regex::Regex=r"")
 	fin = open(vocab_path)
 	freqs = Array(Int64, 0)
-	id2word = Array(String, 0)
+	id2word = Array(AbstractString, 0)
 	while !eof(fin)
 		try
 			word, freq = split(readline(fin))
@@ -18,8 +18,8 @@ function read_from_file(vocab_path::String, min_freq::Int64=0, stopwords::Set{St
 	return freqs, id2word
 end
 
-function read_from_file(vocab_path::String, M::Int, T::Int, min_freq::Int=5, 
-	removeTopK::Int=70, stopwords::Set{String}=Set{String}();
+function read_from_file(vocab_path::AbstractString, M::Int, T::Int, min_freq::Int=5, 
+	removeTopK::Int=70, stopwords::Set{AbstractString}=Set{AbstractString}();
 	regex::Regex=r"")
 	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords; regex=regex)
 
@@ -30,7 +30,7 @@ function read_from_file(vocab_path::String, M::Int, T::Int, min_freq::Int=5,
 	return VectorModel(freqs, M, T), Dictionary(id2word)
 end
 
-function build_from_file(text_path::String, M::Int, T::Int, min_freq::Int64=5)
+function build_from_file(text_path::AbstractString, M::Int, T::Int, min_freq::Int64=5)
 	f = open(text_path)
 	freqs, id2word = count_words(f)
 	close(f)
@@ -38,13 +38,13 @@ function build_from_file(text_path::String, M::Int, T::Int, min_freq::Int64=5)
 	return VectorModel(freqs, M, T), Dictionary(id2word)
 end
 
-function dict_from_file(vocab_path::String)
+function dict_from_file(vocab_path::AbstractString)
 	freqs, id2word = read_from_file(vocab_path)
 
 	return Dictionary(id2word)
 end
 
-function read_word2vec(path::String)
+function read_word2vec(path::AbstractString)
 	fin = open(path)
 
 	line = readline(fin)
@@ -54,7 +54,7 @@ function read_word2vec(path::String)
 	M = int(line[2])
 
 	In = zeros(Float32, M, V)
-	id2word = Array(String, 0)
+	id2word = Array(AbstractString, 0)
 
 	for v in 1:V
 		word = readuntil(fin, ' ')[1:end-1]
@@ -69,7 +69,7 @@ function read_word2vec(path::String)
 	return In, Dictionary(id2word)
 end
 
-function write_word2vec(path::String, vm::VectorModel, dict::Dictionary)
+function write_word2vec(path::AbstractString, vm::VectorModel, dict::Dictionary)
 	fout = open(path, "w")
 	write(fout, "$(V(vm)) $(M(vm))\n")
 	for v in 1:V(vm)
@@ -91,7 +91,7 @@ function finalize!(vm::VectorModel)
 	vm.path = sdata(vm.path)
 end
 
-function save_model(path::String, vm::VectorModel, dict::Dictionary, min_prob=1e-5)
+function save_model(path::AbstractString, vm::VectorModel, dict::Dictionary, min_prob=1e-5)
 	file = open(path, "w")
 	println(file, V(vm), " ", M(vm), " ", T(vm))
 	println(file, vm.alpha, " ", vm.d)
@@ -120,7 +120,7 @@ function save_model(path::String, vm::VectorModel, dict::Dictionary, min_prob=1e
 	close(file)
 end
 
-function load_model(path::String)
+function load_model(path::AbstractString)
 	file = open(path)
 
 	_V, _M, _T = map(int, split(readline(file)))
@@ -136,7 +136,7 @@ function load_model(path::String)
 
 	buffer = zeros(Float32, M(vm))
 
-	id2word = Array(String, 0)
+	id2word = Array(AbstractString, 0)
 	for v in 1:V(vm)
 		word = strip(readline(file))
 		nsenses = int(readline(file))
@@ -181,12 +181,12 @@ function vec(vm::VectorModel, v::Integer, s::Integer)
 	return x / vnorm(x, 2)
 end
 
-function vec(vm::VectorModel, dict::Dictionary, w::String, s::Integer)
+function vec(vm::VectorModel, dict::Dictionary, w::AbstractString, s::Integer)
 	return vec(vm, dict.word2id[w], s)
 end
 
 function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{Tsf},
-		K::Integer=10; exclude::Array{(Int32, Int64)}=Array((Int32, Int64), 0), 
+		K::Integer=10; exclude::Array{Tuple{Int32, Int64}}=Array(Tuple{Int32, Int64}, 0), 
 		min_count::Float64=1.)
 	sim = zeros(Tsf, (T(vm), V(vm)))
 
@@ -223,7 +223,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 end
 
 function nearest_neighbors(vm::VectorModel, dict::Dictionary,
-		w::String, s::Int, K::Integer=10)
+		w::AbstractString, s::Int, K::Integer=10)
 	v = dict.word2id[w]
 	return nearest_neighbors(vm, dict, vec(vm, v, s), K; exclude=[(v, s)])
 end
@@ -255,7 +255,7 @@ function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
 	return z
 end
 
-function disambiguate{Ts <: String}(vm::VectorModel, dict::Dictionary, x::String, context::AbstractArray{Ts, 1}, use_prior::Bool=true, min_prob::Float64=1e-3)
+function disambiguate{Ts <: AbstractString}(vm::VectorModel, dict::Dictionary, x::AbstractString, context::AbstractArray{Ts, 1}, use_prior::Bool=true, min_prob::Float64=1e-3)
 	return disambiguate(vm, dict.word2id[x], Int32[dict.word2id[y] for y in context], use_prior, min_prob)
 end
 

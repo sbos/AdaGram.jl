@@ -50,9 +50,9 @@ function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
 	return ll / j
 end
 
-function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::String,
+function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractString,
 		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216, 
-		log::Union(Nothing, String)=nothing)
+		log::Union{Void, AbstractString}=nothing)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))

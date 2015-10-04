@@ -1,7 +1,7 @@
 module AdaGram
 
 using ArrayViews
-using NumericExtensions
+#using NumericExtensions
 
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
@@ -16,11 +16,11 @@ import ArrayViews.Subs
 import Base.vec
 
 type Dictionary
-	word2id::Dict{String, Tw}
-	id2word::Array{String}
+	word2id::Dict{AbstractString, Tw}
+	id2word::Array{AbstractString}
 
-	function Dictionary(id2word::Array{String})
-		word2id = Dict{String, Int}()
+	function Dictionary(id2word::Array{AbstractString})
+		word2id = Dict{AbstractString, Int}()
 		for v in 1:length(id2word)
 			push!(word2id, id2word[v], v)
 		end

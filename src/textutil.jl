@@ -30,7 +30,7 @@ function looped_word_iterator(f::IO, start_pos::Int64, end_pos::Int64)
 end
 
 function count_words(f::IOStream, min_freq::Int=5)
-  counts = Dict{String, Int64}()
+  counts = Dict{AbstractString, Int64}()
 
   for word in word_iterator(f)
     if get(counts, word, 0) == 0
@@ -47,7 +47,7 @@ function count_words(f::IOStream, min_freq::Int=5)
   end
 
   V = length(counts)
-  id2word = Array(String, V)
+  id2word = Array(AbstractString, V)
   freqs = zeros(Int64, V)
   i = 1
   for (word, count) in counts
@@ -90,7 +90,7 @@ function read_words(f::IO,
   return view(doc, 1:i-1)
 end
 
-function read_words(str::String,
+function read_words(str::AbstractString,
     dict::Dictionary, doc::DenseArray{Int32},
     batch::Int, last_pos::Int)
   i = 1

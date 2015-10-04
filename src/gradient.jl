@@ -107,9 +107,9 @@ function var_update_counts!(vm::VectorModel, x::Integer,
 	end
 end
 
-function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::String,
+function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::AbstractString,
 		window_length::Int; batch::Int = 64000, start_lr::Float64 = 0.025,
-		log_path::Union(String, Nothing) = nothing, threshold::Float64 = Inf,
+		log_path::Union{AbstractString, Void} = nothing, threshold::Float64 = Inf,
 		context_cut::Bool = true, epochs::Int = 1, init_count::Float64=-1, sense_treshold::Float64=1e-32)
 	for w in 1:V(vm)
 		vm.counts[1, w] = init_count > 0 ? init_count : vm.frequencies[w]

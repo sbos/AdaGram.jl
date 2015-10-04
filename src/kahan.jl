@@ -1,12 +1,12 @@
-type Kahan{T <: FloatingPoint}
+type Kahan{T <: AbstractFloat}
 	sum::T
 	c::T
 end
 
-Kahan{T <: FloatingPoint}(::Type{T}) = Kahan{T}(convert(T, 0), convert(T, 0))
+Kahan{T <: AbstractFloat}(::Type{T}) = Kahan{T}(convert(T, 0), convert(T, 0))
 
-import NumericExtensions.add!
-function add!{T <: FloatingPoint}(k::Kahan{T}, x::T)
+#import NumericExtensions.add!
+function add!{T <: AbstractFloat}(k::Kahan{T}, x::T)
 	y = x - k.c
 	t = k.sum + y
 	k.c = (t - k.sum) - y
@@ -16,14 +16,14 @@ end
 import Base.sum
 sum(k::Kahan) = k.sum
 
-type MeanCounter{T <: FloatingPoint}
+type MeanCounter{T <: AbstractFloat}
 	n::Int64
 	mean::Kahan{T}
 end
 
-MeanCounter{T <: FloatingPoint}(::Type{T}) = MeanCounter{T}(0, Kahan(T))
+MeanCounter{T <: AbstractFloat}(::Type{T}) = MeanCounter{T}(0, Kahan(T))
 
-function add!{T <: FloatingPoint}(m::MeanCounter{T}, x::T)
+function add!{T <: AbstractFloat}(m::MeanCounter{T}, x::T)
 	m.n += 1
 	add!(m.mean, (x - sum(m.mean)) / m.n)
 	return m.mean
