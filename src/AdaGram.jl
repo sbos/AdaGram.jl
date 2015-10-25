@@ -1,7 +1,7 @@
 module AdaGram
 
 using ArrayViews
-#using NumericExtensions
+using Devectorize
 
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
@@ -22,7 +22,7 @@ type Dictionary
 	function Dictionary(id2word::Array{AbstractString})
 		word2id = Dict{AbstractString, Int}()
 		for v in 1:length(id2word)
-			push!(word2id, id2word[v], v)
+			setindex!(word2id, v, id2word[v])
 		end
 		return new(word2id, id2word)
 	end
@@ -67,14 +67,14 @@ function shared_zeros{T}(::Type{T}, dims::Tuple)
 	return S
 end
 
-function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::Float64=1e-2, 
+function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::Float64=1e-2,
 		d::Float64=0.)
 	path = shared_zeros(Int32, (max_length, V))
 	code = shared_zeros(Int8, (max_length, V))
 
 	code[:] = -1
 
-	In =  shared_zeros(Float32, (M, T, V)) 
+	In =  shared_zeros(Float32, (M, T, V))
 	Out = shared_zeros(Float32, (M, V))
 
 	counts = shared_zeros(Float32, (T, V))
@@ -84,7 +84,7 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
 end
 
-function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1e-2, 
+function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1e-2,
 	d::Float64=0.)
 	V = length(freqs)
 
@@ -104,8 +104,8 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 		end
 	end
 
-	In = shared_rand((M, T, V), float32(M))
-	Out = shared_rand((M, V), float32(M))
+	In = shared_rand((M, T, V), Float32(M))
+	Out = shared_rand((M, V), Float32(M))
 
 	counts = shared_zeros(Float32, (T, V))
 

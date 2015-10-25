@@ -32,9 +32,19 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 			if i == j continue end
 			var_update_z!(vm, x, doc[j], z)
 		end
-		subtract!(z, maximum(z))
-		exp!(z)
-		divide!(z, sum(z))
+		max_z = maximum(z)
+		sum_z = 0.
+		for k in 1:T(vm)
+			z[k] = exp(z[k] - max_z)
+			sum_z += z[k]
+		end
+		for k in 1:T(vm)
+			z[k] /= sum_z
+		end
+		#@devec z = exp(z .- maximum(z))
+		# subtract!(z, maximum(z))
+		# exp!(z)
+		# divide!(z, sum(z))
 
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end
@@ -53,7 +63,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 		if i % batch == 0
 			time_per_kword = batch / toq() / 1000
-			@printf("%.2f%% %.4f %.4f %.4f %.1f/%.1f %.2f kwords/sec\n", 
+			@printf("%.2f%% %.4f %.4f %.4f %.1f/%.1f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
 					total_ll[1] / total_ll[2], lr1, lr2, senses / i, max_senses, time_per_kword)
 			tic()
@@ -81,7 +91,7 @@ function in_place_update!{Tw <: Integer}(vm::VectorModel,
 			x,
 			view(vm.path, :, y), view(vm.code, :, y), size(vm.code, 1),
 			in_grad, out_grad,
-			float32(lr), float32(sense_treshold))
+			lr, sense_treshold)
 end
 
 function var_init_z!(vm::VectorModel, x::Integer, z::DenseArray{Float64})
@@ -116,7 +126,7 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::Abstrac
 	end
 
 	nbytes = filesize(path)
-	train_words = float64(sum(vm.frequencies)) * epochs
+	train_words = Float64(sum(vm.frequencies)) * epochs
 
 	words_read = shared_zeros(Int64, (1,))
 	total_ll = shared_zeros(Float64, (2,))
@@ -137,7 +147,7 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::Abstrac
 				vm.frequencies, threshold, words_read, train_words)
 
 			println("$(length(doc)) words read, $(position(file))/$end_pos")
-			if length(doc) == 0 
+			if length(doc) == 0
 				break
 			end
 

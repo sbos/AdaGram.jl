@@ -1,4 +1,4 @@
-function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords::Set{AbstractString}=Set{AbstractString}(); 
+function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords::Set{AbstractString}=Set{AbstractString}();
 		regex::Regex=r"")
 	fin = open(vocab_path)
 	freqs = Array(Int64, 0)
@@ -6,7 +6,7 @@ function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords
 	while !eof(fin)
 		try
 			word, freq = split(readline(fin))
-			freq_num = int64(freq)
+			freq_num = parse(Int64, freq)
 			if freq_num < min_freq || word in stopwords || !ismatch(regex, word) continue end
 			push!(id2word, word)
 			push!(freqs, freq_num)
@@ -18,7 +18,7 @@ function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords
 	return freqs, id2word
 end
 
-function read_from_file(vocab_path::AbstractString, M::Int, T::Int, min_freq::Int=5, 
+function read_from_file(vocab_path::AbstractString, M::Int, T::Int, min_freq::Int=5,
 	removeTopK::Int=70, stopwords::Set{AbstractString}=Set{AbstractString}();
 	regex::Regex=r"")
 	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords; regex=regex)
@@ -50,8 +50,8 @@ function read_word2vec(path::AbstractString)
 	line = readline(fin)
 	line = split(line)
 
-	V = int(line[1])
-	M = int(line[2])
+	V = parse(Int64, line[1])
+	M = parse(Int64, line[2])
 
 	In = zeros(Float32, M, V)
 	id2word = Array(AbstractString, 0)
@@ -186,13 +186,13 @@ function vec(vm::VectorModel, dict::Dictionary, w::AbstractString, s::Integer)
 end
 
 function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{Tsf},
-		K::Integer=10; exclude::Array{Tuple{Int32, Int64}}=Array(Tuple{Int32, Int64}, 0), 
+		K::Integer=10; exclude::Array{Tuple{Int32, Int64}}=Array(Tuple{Int32, Int64}, 0),
 		min_count::Float64=1.)
 	sim = zeros(Tsf, (T(vm), V(vm)))
 
 	for v in 1:V(vm)
 		for s in 1:T(vm)
-			if vm.counts[s, v] < min_count 
+			if vm.counts[s, v] < min_count
 				sim[s, v] = -Inf
 				continue
 			end
@@ -206,7 +206,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 	top = Array((Int, Int), K)
 	topSim = zeros(Tsf, K)
 
-	function split_index(sim, i) 
+	function split_index(sim, i)
 		i -= 1
 		v = i % size(sim, 1) + 1
 		s = int(floor(i / size(sim, 1))) + 1
@@ -216,7 +216,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 		curr_max = split_index(sim, indmax(sim))
 		topSim[k] = sim[curr_max[1], curr_max[2]]
 		sim[curr_max[1], curr_max[2]] = -Inf
-		
+
 		top[k] = curr_max
 	end
 	return [(dict.id2word[r[2]], r[1], simr) for (r, simr) in zip(top, topSim)]
@@ -230,13 +230,13 @@ end
 
 cos_dist(x, y) = 1. - dot(x, y) / vnorm(x, 2) / vnorm(y, 2)
 
-function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw, 
-		context::AbstractArray{Tw, 1}, use_prior::Bool=true, 
+function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
+		context::AbstractArray{Tw, 1}, use_prior::Bool=true,
 		min_prob::Float64=1e-3)
 	z = zeros(T(vm))
 
-	if use_prior 
-		expected_pi!(z, vm, x) 
+	if use_prior
+		expected_pi!(z, vm, x)
 		for k in 1:T(vm)
 			if z[k] < min_prob
 				z[k] = 0.

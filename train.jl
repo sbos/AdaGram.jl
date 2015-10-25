@@ -7,15 +7,15 @@ s = ArgParseSettings()
 @add_arg_table s begin
   "train"
     help = "training text data"
-    arg_type = String
+    arg_type = AbstractString
     required = true
   "dict"
     help = "dictionary file with word frequencies"
-    arg_type = String
+    arg_type = AbstractString
     required = true
   "output"
     help = "file to save the model (in Julia format)"
-    arg_type = String
+    arg_type = AbstractString
     required = true
   "--window"
     help = "(max) window size"
@@ -66,7 +66,7 @@ s = ArgParseSettings()
     default = -1.
   "--stopwords"
     help = "file with list of stop words"
-    arg_type = String
+    arg_type = AbstractString
   "--sense-treshold"
     help = "minimal probability of a meaning to contribute into gradients"
     arg_type = Float64
@@ -77,7 +77,7 @@ s = ArgParseSettings()
     default = 1e-3
   "--regex"
     help = "ignore words not matching provided regex"
-    arg_type = String
+    arg_type = AbstractString
     default = ""
 end
 
@@ -85,13 +85,11 @@ args = parse_args(ARGS, s)
 
 addprocs(args["workers"])
 
-require("AdaGram.jl")
-
 using AdaGram
 
-stopwords = Set{String}()
+stopwords = Set{AbstractString}()
 if args["stopwords"] != nothing
-  stopwords = Set{String}(readdlm(args["stopwords"]))
+  stopwords = Set{AbstractString}(readdlm(args["stopwords"]))
 end
 
 print("Building dictionary... ")

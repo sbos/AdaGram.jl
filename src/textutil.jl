@@ -1,10 +1,20 @@
+function adagram_isblank(c::Char)
+  return c == ' ' || c == '\t'
+end
+
+function adagram_isblank(s::AbstractString)
+  return all((c->begin
+            c == ' ' || c == '\t'
+        end),s)
+end
+
 function word_iterator(f::IO, end_pos::Int64=-1)
   function producer()
     while (end_pos < 0 || position(f) < end_pos) && !eof(f)
       w = readuntil(f, ' ')
       if length(w) < 1 break end
       w = w[1:end-1]
-      if !isblank(w)
+      if !adagram_isblank(w)
         produce(w)
       end
     end
@@ -19,7 +29,7 @@ function looped_word_iterator(f::IO, start_pos::Int64, end_pos::Int64)
       w = readuntil(f, ' ')
       if length(w) < 1 break end
       w = w[1:end-1]
-      if !isblank(w)
+      if !adagram_isblank(w)
         produce(w)
       end
       if position(f) >= end_pos seek(f, start_pos) end
@@ -60,11 +70,11 @@ function count_words(f::IOStream, min_freq::Int=5)
 end
 
 function align(f::IO)
-  while !isblank(read(f, Char))
+  while !adagram_isblank(read(f, Char))
     continue
   end
 
-  while isblank(read(f, Char))
+  while adagram_isblank(read(f, Char))
     continue
   end
 

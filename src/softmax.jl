@@ -15,18 +15,18 @@ import Base.length
 
 length(out::HierarchicalOutput) = length(out.path)
 
-function HierarchicalSoftmaxNode() 
-	return HierarchicalSoftmaxNode(int32(0), false)
+function HierarchicalSoftmaxNode()
+	return HierarchicalSoftmaxNode(Int32(0), false)
 end
 
-function softmax_path(nodes::Array{HierarchicalSoftmaxNode}, 
+function softmax_path(nodes::Array{HierarchicalSoftmaxNode},
 		V::Integer, id::Integer)
 	function path()
 		while true
 			node = nodes[id]
 			if node.parent == 0 break; end
 			@assert node.parent > V
-			produce((int32(node.parent - V), convert(Float64, node.branch)))
+			produce((Int32(node.parent - V), convert(Float64, node.branch)))
 			id = node.parent
 		end
 	end
@@ -46,7 +46,7 @@ function build_huffman_tree{Tf <: Number}(freqs::Array{Tf})
 
 	function pop_initialize!(parent::Int, branch::Bool)
 		node = heappop!(heap, freq_ord)
-		node[1].parent = int32(parent)
+		node[1].parent = Int32(parent)
 		node[1].branch = branch
 		return node[2]
 	end
@@ -74,7 +74,7 @@ function convert_huffman_tree(nodes::Array{HierarchicalSoftmaxNode}, V::Integer)
 		path = Array(Int, 0)
 
 		for (n, branch) in softmax_path(nodes, V, v)
-			push!(code, uint8(branch))
+			push!(code, round(UInt8, branch))
 			push!(path, n)
 		end
 
