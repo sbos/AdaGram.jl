@@ -178,7 +178,7 @@ end
 
 function vec(vm::VectorModel, v::Integer, s::Integer)
 	x = vm.In[:, s, v]
-	return x / vnorm(x, 2)
+	return x / norm(x)
 end
 
 function vec(vm::VectorModel, dict::Dictionary, w::AbstractString, s::Integer)
@@ -228,7 +228,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary,
 	return nearest_neighbors(vm, dict, vec(vm, v, s), K; exclude=[(v, s)])
 end
 
-cos_dist(x, y) = 1. - dot(x, y) / vnorm(x, 2) / vnorm(y, 2)
+cos_dist(x, y) = 1. - dot(x, y) / norm(x, 2) / norm(y, 2)
 
 function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
 		context::AbstractArray{Tw, 1}, use_prior::Bool=true,
