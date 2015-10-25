@@ -124,8 +124,8 @@ function load_model(path::AbstractString)
 	file = open(path)
 
 	_V, _M, _T = map(int, split(readline(file)))
-	alpha, d = map(float64 , split(readline(file)))
-	max_length = int(readline(file))
+	alpha, d = map(Float64 , split(readline(file)))
+	max_length = parse(Int, readline(file))
 
 	vm = VectorModel(max_length, _V, _M, _T, alpha, d)
 	read!(file, sdata(vm.frequencies))
@@ -139,11 +139,11 @@ function load_model(path::AbstractString)
 	id2word = Array(AbstractString, 0)
 	for v in 1:V(vm)
 		word = strip(readline(file))
-		nsenses = int(readline(file))
+		nsenses = parse(Int, readline(file))
 		push!(id2word, word)
 
 		for r in 1:nsenses
-			k = int(readline(file))
+			k = parse(Int, readline(file))
 			read!(file, buffer)
 			vm.In[:, k, v] = buffer
 			readline(file)
@@ -209,7 +209,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 	function split_index(sim, i)
 		i -= 1
 		v = i % size(sim, 1) + 1
-		s = int(floor(i / size(sim, 1))) + 1
+		s = Int(floor(i / size(sim, 1))) + 1
 		return v, s
 	end
 	for k in 1:K

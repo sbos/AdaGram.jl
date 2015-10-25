@@ -41,10 +41,6 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		for k in 1:T(vm)
 			z[k] /= sum_z
 		end
-		#@devec z = exp(z .- maximum(z))
-		# subtract!(z, maximum(z))
-		# exp!(z)
-		# divide!(z, sum(z))
 
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end
@@ -63,7 +59,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 		if i % batch == 0
 			time_per_kword = batch / toq() / 1000
-			@printf("%.2f%% %.4f %.4f %.4f %.1f/%.1f %.2f kwords/sec\n",
+			@printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
 					total_ll[1] / total_ll[2], lr1, lr2, senses / i, max_senses, time_per_kword)
 			tic()
