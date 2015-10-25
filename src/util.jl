@@ -203,7 +203,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 	for (v, s) in exclude
 		sim[s, v] = -Inf
 	end
-	top = Array((Int, Int), K)
+	top = Array(Tuple{Int, Int}, K)
 	topSim = zeros(Tsf, K)
 
 	function split_index(sim, i)
