@@ -123,7 +123,7 @@ end
 function load_model(path::AbstractString)
 	file = open(path)
 
-	_V, _M, _T = map(Int, split(readline(file)))
+	_V, _M, _T = map(x -> parse(Int, x), split(readline(file)))
 	alpha, d = map(x -> parse(Float64, x) , split(readline(file)))
 	max_length = parse(Int, readline(file))
 
