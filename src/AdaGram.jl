@@ -51,8 +51,7 @@ function shared_rand{T}(dims::Tuple, norm::T)
 			chunk = localindexes(S)
 			chunk_size = length(chunk)
 			data = rand(chunk_size)
-			subtract!(data, 0.5)
-			divide!(data, norm)
+			@devec data = (data - 0.5) ./ norm
 			S[chunk] = data
 		end)
 	return S
