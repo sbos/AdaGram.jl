@@ -117,6 +117,18 @@ end
 
 view(vm::VectorModel, v::Integer, s::Integer) = view(vm.In, :, s, v)
 
+function exp_normalize!(x)
+	max_x = maximum(x)
+	sum_x = 0.
+	for i in 1:length(x)
+		x[i] = exp(x[i] - max_x)
+		sum_x += x[i]
+	end
+	for i in 1:length(x)
+		x[i] /= sum_x
+	end
+end
+
 include("kahan.jl")
 include("skip_gram.jl")
 include("stick_breaking.jl")

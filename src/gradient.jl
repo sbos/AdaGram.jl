@@ -32,15 +32,8 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 			if i == j continue end
 			var_update_z!(vm, x, doc[j], z)
 		end
-		max_z = maximum(z)
-		sum_z = 0.
-		for k in 1:T(vm)
-			z[k] = exp(z[k] - max_z)
-			sum_z += z[k]
-		end
-		for k in 1:T(vm)
-			z[k] /= sum_z
-		end
+
+		exp_normalize!(z)
 
 		for j in max(1, i - window):min(N, i + window)
 			if i == j continue end

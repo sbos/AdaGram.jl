@@ -219,7 +219,8 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 
 		top[k] = curr_max
 	end
-	return [(dict.id2word[r[2]], r[1], simr) for (r, simr) in zip(top, topSim)]
+	return Tuple{AbstractString, Int, Tsf}[(dict.id2word[r[2]], r[1], simr)
+		for (r, simr) in zip(top, topSim)]
 end
 
 function nearest_neighbors(vm::VectorModel, dict::Dictionary,
@@ -241,17 +242,15 @@ function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
 			if z[k] < min_prob
 				z[k] = 0.
 			end
+			z[k] = log(z[k])
 		end
-		log!(z)
 	end
 	for y in context
 		var_update_z!(vm, x, y, z)
 	end
 
-	subtract!(z, maximum(z))
-	exp!(z)
-	divide!(z, sum(z))
-
+	exp_normalize!(z)
+	
 	return z
 end
 
