@@ -197,7 +197,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 				continue
 			end
 			in_vs = view(vm.In, :, s, v)
-			sim[s, v] = dot(in_vs, word) / vnorm(in_vs)
+			sim[s, v] = dot(in_vs, word) / norm(in_vs)
 		end
 	end
 	for (v, s) in exclude
