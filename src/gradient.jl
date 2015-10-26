@@ -41,8 +41,9 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, sense_treshold)
 
-			total_ll[1] += ll
 			total_ll[2] += 1
+			total_ll[1] += (ll - total_ll[1]) / total_ll[2]
+			
 		end
 
 		words_read[1] += 1
@@ -54,7 +55,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 			time_per_kword = batch / toq() / 1000
 			@printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
-					total_ll[1] / total_ll[2], lr1, lr2, senses / i, max_senses, time_per_kword)
+					total_ll[1], lr1, lr2, senses / i, max_senses, time_per_kword)
 			tic()
 		end
 
