@@ -257,8 +257,10 @@ function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
 	return z
 end
 
-function disambiguate{Ts <: AbstractString}(vm::VectorModel, dict::Dictionary, x::AbstractString, context::AbstractArray{Tuple{Ts, Int}}, use_prior::Bool=true, min_prob::Float64=1e-3)
-	return disambiguate(vm, dict.word2id[x], Int32[dict.word2id[y] for y in context], use_prior, min_prob)
+function disambiguate{Ts <: AbstractString}(vm::VectorModel, dict::Dictionary,
+		x::AbstractString, context::AbstractArray{Tuple{Ts, Int}},
+		use_prior::Bool=true, min_prob::Float64=1e-3)
+	return disambiguate(vm, dict.word2id[x], Tuple{Int32, Int}[(dict.word2id[y[1]], y[2]) for y in context], use_prior, min_prob)
 end
 
 export nearest_neighbors
