@@ -26,13 +26,16 @@ end
 function looped_word_iterator(f::IO, start_pos::Int64, end_pos::Int64)
   function producer()
     while true
-      w = readuntil(f, ' ')
-      if length(w) < 1 break end
-      w = w[1:end-1]
-      if !adagram_isblank(w)
-        produce(w)
+      try
+        w = readuntil(f, ' ')
+        if length(w) < 1 break end
+        w = w[1:end-1]
+        if !adagram_isblank(w)
+          produce(w)
+        end
+        if position(f) >= end_pos seek(f, start_pos) end
+      catch UnicodeError
       end
-      if position(f) >= end_pos seek(f, start_pos) end
     end
   end
 
