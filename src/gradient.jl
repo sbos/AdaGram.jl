@@ -61,7 +61,7 @@ function inplace_train_vectors!(vm::VectorModel, data::Task,
 
 		if words_read[1] > total_words break end
 	end
-	toq()
+	#toq()
 end
 
 function in_place_update!{Tw <: Integer}(vm::VectorModel,
@@ -131,7 +131,7 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::Abstrac
 
 		seek(file, start_pos)
 		buffer = zeros(Int32, batch)
-		while words_read[1] < train_words
+		if words_read[1] < train_words
 			# doc = read_words(file, start_pos, end_pos, dict, buffer,
 			# 	vm.frequencies, threshold, words_read, train_words)
 
