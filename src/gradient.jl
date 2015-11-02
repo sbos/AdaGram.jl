@@ -1,22 +1,25 @@
 import Base.BLAS.axpy!
 
-function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
+function inplace_train_vectors!(vm::VectorModel, data::Task,
 		window_length::Int,
 		start_lr::Float64, total_words::Float64, words_read::DenseArray{Int64},
 		total_ll::DenseArray{Float64}; batch::Int=10000,
 		context_cut::Bool = true, sense_treshold::Float64=1e-32)
 
-	N = length(doc)
+	#N = length(doc)
 	in_grad = zeros(Tsf, M(vm), T(vm))
-	out_grad = zeros(Tsf, M(vm))
+	out_grad = zeros(Tsf, M(vm) - K(vm))
+	label_grad = zeros(Tsf, K(vm))
 
 	z = zeros(T(vm))
 	senses = 0.
 	max_senses = 0.
 
 	tic()
-	for i in 1:N
-		x = doc[i]
+
+	i = 0
+	for (x, ys) in data
+		i += 1
 		lr1 = max(start_lr * (1 - words_read[1] / (total_words+1)), start_lr * 1e-4)
 		lr2 = lr1
 
@@ -28,22 +31,19 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		n_senses = var_init_z!(vm, x, z)
 		senses += n_senses
 		max_senses = max(max_senses, n_senses)
-		for j in max(1, i - window):min(N, i + window) #
-			if i == j continue end
-			var_update_z!(vm, x, doc[j], z)
+		for y in ys
+			var_update_z!(vm, x, y, z)
 		end
 
 		exp_normalize!(z)
 
-		for j in max(1, i - window):min(N, i + window)
-			if i == j continue end
-			y = doc[j]
-
-			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, sense_treshold)
+		for y in ys
+			ll = in_place_update!(vm, x, y, z, lr1, in_grad, out_grad, label_grad,
+				sense_treshold)
 
 			total_ll[2] += 1
 			total_ll[1] += (ll - total_ll[1]) / total_ll[2]
-			
+
 		end
 
 		words_read[1] += 1
@@ -65,22 +65,22 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 end
 
 function in_place_update!{Tw <: Integer}(vm::VectorModel,
-		x::Tw, y::Tw, z::DenseArray{Float64}, lr::Float64,
-		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, sense_treshold::Float64)
-
+		x::Tw, y::Tuple{Tw, Int}, z::DenseArray{Float64}, lr::Float64,
+		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, label_grad::DenseArray{Tsf},
+		sense_treshold::Float64)
 
 	return ccall((:inplace_update, "superlib"), Float32,
-		(Ptr{Float32}, Ptr{Float32},
-			Int, Int, Ptr{Float64},
+		(Ptr{Float32}, Ptr{Float32}, Ptr{Float32},
+			Int, Int, Int, Ptr{Float64},
 			Int,
 			Ptr{Int32}, Ptr{Int8}, Int64,
-			Ptr{Float32}, Ptr{Float32},
+			Ptr{Float32}, Ptr{Float32}, Ptr{Float32},
 			Float32, Float32),
-		sdata(vm.In), sdata(vm.Out),
-			M(vm), T(vm), z,
+		sdata(vm.In), sdata(vm.Out), view(vm.LabelOut, :, y[2]),
+			K(vm), M(vm), T(vm), z,
 			x,
-			view(vm.path, :, y), view(vm.code, :, y), size(vm.code, 1),
-			in_grad, out_grad,
+			view(vm.path, :, y[1]), view(vm.code, :, y[1]), size(vm.code, 1),
+			in_grad, out_grad, label_grad,
 			lr, sense_treshold)
 end
 
@@ -89,14 +89,14 @@ function var_init_z!(vm::VectorModel, x::Integer, z::DenseArray{Float64})
 end
 
 function var_update_z!{Tw <: Integer}(vm::VectorModel,
-		x::Tw, y::Tw, z::DenseArray{Float64}, num_meanings::Int=T(vm))
+		x::Tw, y::Tuple{Tw, Int}, z::DenseArray{Float64}, num_meanings::Int=T(vm))
 	ccall((:update_z, "superlib"), Void,
-		(Ptr{Float32}, Ptr{Float32},
-			Int, Int, Ptr{Float64}, Int,
+		(Ptr{Float32}, Ptr{Float32}, Ptr{Float32},
+			Int, Int, Int, Ptr{Float64}, Int,
 			Ptr{Int32}, Ptr{Int8}, Int64),
-		vm.In, vm.Out,
-			M(vm), num_meanings, z, x,
-			view(vm.path, :, y), view(vm.code, :, y), size(vm.path, 1))
+		vm.In, vm.Out, view(vm.LabelOut, :, y[2]),
+			K(vm), M(vm), num_meanings, z, x,
+			view(vm.path, :, y[1]), view(vm.code, :, y[1]), size(vm.path, 1))
 end
 
 function var_update_counts!(vm::VectorModel, x::Integer,
@@ -130,19 +130,19 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::Abstrac
 		end_pos = start_pos+bytes_per_worker
 
 		seek(file, start_pos)
-		align(file)
 		buffer = zeros(Int32, batch)
 		while words_read[1] < train_words
-			doc = read_words(file, start_pos, end_pos, dict, buffer,
-				vm.frequencies, threshold, words_read, train_words)
+			# doc = read_words(file, start_pos, end_pos, dict, buffer,
+			# 	vm.frequencies, threshold, words_read, train_words)
 
-			println("$(length(doc)) words read, $(position(file))/$end_pos")
-			if length(doc) == 0
-				break
-			end
+			#println("$(length(doc)) words read, $(position(file))/$end_pos")
+			# if length(doc) == 0
+			# 	break
+			# end
 
-			inplace_train_vectors!(vm, doc, window_length,
-				start_lr, train_words, words_read, total_ll;
+			inplace_train_vectors!(vm,
+				labeled_word_iterator(file, dict, start_pos, end_pos),
+				window_length, start_lr, train_words, words_read, total_ll;
 				context_cut = context_cut, sense_treshold = sense_treshold)
 		end
 

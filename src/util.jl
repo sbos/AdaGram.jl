@@ -18,16 +18,16 @@ function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords
 	return freqs, id2word
 end
 
-function read_from_file(vocab_path::AbstractString, M::Int, T::Int, min_freq::Int=5,
-	removeTopK::Int=70, stopwords::Set{AbstractString}=Set{AbstractString}();
-	regex::Regex=r"")
+function read_from_file(vocab_path::AbstractString, M::Int, K::Int, L::Int,
+	T::Int, min_freq::Int=5, removeTopK::Int=70,
+	stopwords::Set{AbstractString}=Set{AbstractString}(); regex::Regex=r"")
 	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords; regex=regex)
 
 	S = sortperm(freqs, rev=true)
 	freqs = freqs[S[removeTopK+1:end]]
 	id2word = id2word[S[removeTopK+1:end]]
 
-	return VectorModel(freqs, M, T), Dictionary(id2word)
+	return VectorModel(freqs, M, K, L, T), Dictionary(id2word)
 end
 
 function build_from_file(text_path::AbstractString, M::Int, T::Int, min_freq::Int64=5)
@@ -86,6 +86,7 @@ function finalize!(vm::VectorModel)
 	vm.frequencies = sdata(vm.frequencies)
 	vm.In = sdata(vm.In)
 	vm.Out = sdata(vm.Out)
+	vm.LabelOut = sdata(vm.LabelOut)
 	vm.counts = sdata(vm.counts)
 	vm.code = sdata(vm.code)
 	vm.path = sdata(vm.path)
@@ -93,7 +94,7 @@ end
 
 function save_model(path::AbstractString, vm::VectorModel, dict::Dictionary, min_prob=1e-5)
 	file = open(path, "w")
-	println(file, V(vm), " ", M(vm), " ", T(vm))
+	println(file, V(vm), " ", M(vm), " ", K(vm), " ", L(vm), " ", T(vm))
 	println(file, vm.alpha, " ", vm.d)
 	println(file, size(vm.code, 1))
 
@@ -102,6 +103,7 @@ function save_model(path::AbstractString, vm::VectorModel, dict::Dictionary, min
 	write(file, vm.path)
 	write(file, vm.counts)
 	write(file, vm.Out)
+	write(file, vm.LabelOut)
 
 	z = zeros(T(vm))
 
@@ -123,16 +125,17 @@ end
 function load_model(path::AbstractString)
 	file = open(path)
 
-	_V, _M, _T = map(x -> parse(Int, x), split(readline(file)))
+	_V, _M, _K, _L, _T = map(x -> parse(Int, x), split(readline(file)))
 	alpha, d = map(x -> parse(Float64, x) , split(readline(file)))
 	max_length = parse(Int, readline(file))
 
-	vm = VectorModel(max_length, _V, _M, _T, alpha, d)
+	vm = VectorModel(max_length, _V, _M, _K, _L, _T, alpha, d)
 	read!(file, sdata(vm.frequencies))
 	read!(file, sdata(vm.code))
 	read!(file, sdata(vm.path))
 	read!(file, sdata(vm.counts))
 	read!(file, sdata(vm.Out))
+	read!(file, sdata(vm.LabelOut))
 
 	buffer = zeros(Float32, M(vm))
 
@@ -250,7 +253,7 @@ function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
 	end
 
 	exp_normalize!(z)
-	
+
 	return z
 end
 

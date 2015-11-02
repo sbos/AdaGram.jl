@@ -39,6 +39,44 @@ function looped_word_iterator(f::IO, start_pos::Int64, end_pos::Int64)
   return Task(producer)
 end
 
+function labeled_word_iterator(f::IO, dict::Dictionary, start_pos::Int64, end_pos::Int64)
+  function producer()
+    readline(f)
+    while true
+      l = readline(f)
+      if adagram_isblank(l) || position(f) >= end_pos
+        break
+      end
+
+      input_word, output_words = split(l, '\t')
+      input_word_idx = get(dict.word2id, input_word, -1)
+      if input_word_idx == -1
+        continue
+      end
+
+      output_words = filter(w -> length(w) > 0, map(strip, split(output_words, ',')))
+
+      N = length(output_words)
+      words = Array(Tuple{Int32, Int}, 0)
+      for i in 1:N
+        word, label = split(output_words[i], '#')
+        word_idx = get(dict.word2id, word, -1)
+        if word_idx != -1
+          try
+            push!(words, (word_idx, parse(Int, label)+1))
+          catch x
+            println(x)
+          end
+        end
+      end
+
+      produce((input_word_idx, words))
+    end
+  end
+
+  return Task(producer)
+end
+
 function count_words(f::IOStream, min_freq::Int=5)
   counts = Dict{AbstractString, Int64}()
 

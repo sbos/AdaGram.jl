@@ -34,6 +34,7 @@ type VectorModel
 	path::DenseArray{Int32, 2}
 	In::DenseArray{Tsf, 3}
 	Out::DenseArray{Tsf, 2}
+	LabelOut::DenseArray{Tsf, 2}
 	alpha::Float64
 	d::Float64
 	counts::DenseArray{Float32, 2}
@@ -42,6 +43,8 @@ end
 M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
 T(vm::VectorModel) = size(vm.In, 2) #number of meanings
 V(vm::VectorModel) = size(vm.In, 3) #number of words
+K(vm::VectorModel) = size(vm.LabelOut, 1) #dimensionality of labels
+L(vm::VectorModel) = size(vm.LabelOut, 2) #number of labels
 
 view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
 view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
@@ -66,25 +69,26 @@ function shared_zeros{T}(::Type{T}, dims::Tuple)
 	return S
 end
 
-function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::Float64=1e-2,
-		d::Float64=0.)
+function VectorModel(max_length::Int64, V::Int64, M::Int64, K::Int64, L::Int64,
+		T::Int64=1, alpha::Float64=1e-2, d::Float64=0.)
 	path = shared_zeros(Int32, (max_length, V))
 	code = shared_zeros(Int8, (max_length, V))
 
 	code[:] = -1
 
 	In =  shared_zeros(Float32, (M, T, V))
-	Out = shared_zeros(Float32, (M, V))
+	Out = shared_zeros(Float32, (M - K, V))
+	LabelOut = shared_zeros(Float32, (K, L))
 
 	counts = shared_zeros(Float32, (T, V))
 
 	frequencies = shared_zeros(Int64, (V,))
 
-	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
+	return VectorModel(frequencies, code, path, In, Out, LabelOut, alpha, d, counts)
 end
 
-function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1e-2,
-	d::Float64=0.)
+function VectorModel(freqs::Array{Int64}, M::Int64, K::Int64, L::Int64,
+	T::Int64=1, alpha::Float64=1e-2, d::Float64=0.)
 	V = length(freqs)
 
 	nodes = build_huffman_tree(freqs)
@@ -104,14 +108,15 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 	end
 
 	In = shared_rand((M, T, V), Float32(M))
-	Out = shared_rand((M, V), Float32(M))
+	Out = shared_rand((M - K, V), Float32(M))
+	LabelOut = shared_rand((K, L), Float32(M))
 
 	counts = shared_zeros(Float32, (T, V))
 
 	frequencies = shared_zeros(Int64, (V,))
 	frequencies[:] = freqs
 
-	return VectorModel(frequencies, code, path, In, Out, alpha, d, counts)
+	return VectorModel(frequencies, code, path, In, Out, LabelOut, alpha, d, counts)
 end
 
 view(vm::VectorModel, v::Integer, s::Integer) = view(vm.In, :, s, v)

@@ -34,9 +34,17 @@ s = ArgParseSettings()
     arg_type = Int
     default = 0
   "--dim"
-    help = "dimensionality of representations"
+    help = "dimensionality of word representations"
     arg_type = Int
     default = 100
+  "--label-dim"
+    help = "dimensionality of label representations"
+    arg_type = Int
+    default = 20
+  "--labels"
+    help = "number of labels"
+    arg_type = Int
+    required = true
   "--prototypes"
     help = "number of word prototypes"
     arg_type = Int
@@ -93,8 +101,9 @@ if args["stopwords"] != nothing
 end
 
 print("Building dictionary... ")
-vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
-  args["min-freq"], args["remove-top-k"], stopwords; regex=Regex(args["regex"]))
+vm, dict = read_from_file(args["dict"], args["dim"], args["label-dim"],
+  args["labels"], args["prototypes"], args["min-freq"], args["remove-top-k"],
+  stopwords; regex=Regex(args["regex"]))
 println("Done!")
 
 vm.alpha = args["alpha"]
