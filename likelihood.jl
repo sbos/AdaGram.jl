@@ -7,11 +7,11 @@ s = ArgParseSettings()
 @add_arg_table s begin
   "model"
     help = "path to serialized model"
-    arg_type = String
+    arg_type = AbstractString
     required = true
   "text"
     help = "text to measure likelihood"
-    arg_type = String
+    arg_type = AbstractString
     required = true
   "--window"
     help = "window size"
@@ -31,13 +31,13 @@ s = ArgParseSettings()
     default = 16777216
   "--log"
     help = "save intermediate averages to the file"
-    arg_type = String
+    arg_type = AbstractString
 end
 
 args = parse_args(ARGS, s)
 addprocs(args["workers"])
 
-require("AdaGram.jl")
+# require("AdaGram.jl")
 
 using AdaGram
 

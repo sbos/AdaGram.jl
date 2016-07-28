@@ -26,7 +26,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 				if z[s] < min_prob continue end
 				In = view(vm, x, s)
 
-				add!(local_ll, z[s] * exp(float64(log_skip_gram(vm, x, s, y))))
+				add!(local_ll, z[s] * exp(Float64(log_skip_gram(vm, x, s, y))))
 			end
 			add!(m, log(sum(local_ll)))
 		end
@@ -56,7 +56,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractSt
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
-	stats = Array((Float64, Int64), 0)
+	stats = Array(Tuple{Float64, Int64}, 0)
 
 	function do_work(id::Int)
 		file = open(path)
@@ -69,7 +69,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractSt
 		seek(file, start_pos)
 		align(file)
 		buffer = zeros(Int32, batch)
-		local_stats = Array((Float64, Int64), 0)
+		local_stats = Array(Tuple{Float64, Int64}, 0)
 		while true
 			doc = read_words(file, dict, buffer, batch, end_pos)
 
