@@ -1,4 +1,4 @@
-# AdaGram
+  # AdaGram
 
 Adaptive Skip-gram (AdaGram) model is a nonparametric extension of famous Skip-gram model implemented in word2vec software which  is able to learn multiple representations per word capturing different word meanings. This projects implements AdaGram in Julia language.
 
