@@ -116,18 +116,18 @@ void update_z(float* In, float* Out,
 }
 
 // Run K-means on the word vectors
-void kmeans(char** vocab, float* syn0, int classes, int vocab_size, 
-  int layer1_size, char* output_file){
+void kmeans(int *cl, float* syn0, int classes, int vocab_size, 
+  int layer1_size){
 
   long a, b, c, d;
-  FILE *fo;
+  //FILE *fo;
   int clcn = classes, iter = 10, closeid;
   int *centcn = (int *)malloc(classes * sizeof(int));
-  int *cl = (int *)calloc(vocab_size, sizeof(int));
+  //int *cl = (int *)calloc(vocab_size, sizeof(int));
   real closev, x;
   real *cent = (real *)calloc(classes * layer1_size, sizeof(real));
 
-  fo = fopen(output_file, "w");
+  //fo = fopen(output_file, "w");
 
   for (a = 0; a < vocab_size; a++) cl[a] = a % clcn;
   for (a = 0; a < iter; a++) {
@@ -158,16 +158,17 @@ void kmeans(char** vocab, float* syn0, int classes, int vocab_size,
         }
       }
       cl[c] = closeid;
+      printf("%d\n",cl[c]);
     }
   }
   // Save the K-means classes
-  for (a = 0; a < vocab_size; a++) {
-  	fprintf(fo, "%s %d\n", vocab[a], cl[a]);
-  	printf("%s %d\n", vocab[a], cl[a]);
-  }
-  free(centcn);
-  free(cent);
-  free(cl);
+  // for (a = 0; a < vocab_size; a++) {
+  // 	fprintf(fo, "%s %d\n", vocab[a], cl[a]);
+  // 	printf("%s %d\n", vocab[a], cl[a]);
+  // }
+  // free(centcn);
+  // free(cent);
+  // free(cl);
   
-  fclose(fo);
+  // fclose(fo);
 }

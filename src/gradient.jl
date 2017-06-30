@@ -170,7 +170,7 @@ end
 function clustering(vm::VectorModel, dict::Dictionary, outputFile::AbstractString,
         K::Integer=100; min_prob=1e-3)
 	wordIds = []
-	wordVectors = []
+	wordVectors = Float32[]
 
 	# builds arrays with 
 	for w in 1:V(vm)
@@ -187,8 +187,13 @@ function clustering(vm::VectorModel, dict::Dictionary, outputFile::AbstractStrin
 		end
 	end
 
+	cl = Array{Int}(size(wordIds,1))
+
 	ccall((:kmeans, "superlib"), Void,
-	    (Ptr{Any}, Ptr{Any},
-	    	Int, Int, Int, Cstring), 
-	    wordIds, wordVectors, K, size(wordIds, 1), M(vm), outputFile)
+	    (Ptr{Int}, Ptr{Float32},
+	    	Int, Int, Int), 
+	    cl, wordVectors, K, size(wordIds, 1), M(vm))
+
+	println("finished clustering")
+	println(cl)
 end
