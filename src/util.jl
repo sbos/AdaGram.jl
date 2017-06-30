@@ -185,25 +185,6 @@ function vec(vm::VectorModel, dict::Dictionary, w::AbstractString, s::Integer)
 	return vec(vm, dict.word2id[w], s)
 end
 
-# Performs clustering using K-means algorithm adapted from word2vec
-# clustering routine, but handling the representation vector for each
-# different significant meaning of a word. A word can (and probably should)
-# end up in different clusters, according to its different meanings.
-function kmeans(vm::VectorModel, dict::Dictionary, K::Integer=100; min_prob=1e-3)
-	words = []
-	wordVectors = []
-	for w in 1:V(vm)
-		probVec = expected_pi(vm, w)
-		currentWord = dict.id2word[w]
-		for iMeaning in 1:T(vm)
-			if probVec[iMeaning] > min_prob
-				push!(words, currentWord)
-				currentVector = vm.In[:, iMeaning, w]
-				push!(dimensions, currentVector)
-		end
-	end
-end
-
 function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{Tsf},
 		K::Integer=10; exclude::Array{Tuple{Int32, Int64}}=Array(Tuple{Int32, Int64}, 0),
 		min_count::Float64=1.)
@@ -277,7 +258,9 @@ function disambiguate{Ts <: AbstractString}(vm::VectorModel, dict::Dictionary, x
 	return disambiguate(vm, dict.word2id[x], Int32[dict.word2id[y] for y in context], use_prior, min_prob)
 end
 
+export clustering
 export nearest_neighbors
 export disambiguate
 export pi, write_extended
 export cos_dist, preprocess, read_word2vec, write_word2vec
+export load_model
