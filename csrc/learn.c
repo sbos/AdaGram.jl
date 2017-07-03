@@ -158,10 +158,11 @@ void kmeans(char** words, float* syn0, int classes, int vocab_size,
         }
       }
       cl[c] = closeid;
-      // Save the K-means classes
-      fprintf(fo, "%s %d\n", words[c], cl[c]);
     }
   }
+
+  // Save the K-means classes
+  for (a = 0; a < vocab_size; a++) fprintf(fo, "%s %d\n", words[a], cl[a]);
 
   free(centcn);
   free(cent);
