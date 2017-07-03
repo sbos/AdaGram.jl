@@ -138,6 +138,11 @@ julia> disambiguate(vm, dict, "apple", split("fresh tasty breakfast"))
 ```
 As one may see, model correctly estimated probabilities of each sense with quite large confidence. Vector corresponding to second prototype of word "apple" can be obtained from `vm.In[:, 2, dict.word2id["apple"]]` and then used as context-aware features of word "apple".
 
+A k-means clustering algorithm is provided to classify words in a given number of clusters (default 100) using their embeddings. The algorithm is taken from the one included in word2vec. Because a word can have different meanings, they can (and should in many cases) be assigned to different clusters. The algorithm writes word meanings above a given prior probability minimum (default 1e-3) and the cluster they belong to.
+```
+clustering(vm, dict, "clustering_output_file", 10; min_prob=1e-3)
+```
+
 Plase refer to [API documentation](https://github.com/sbos/AdaGram.jl/wiki/API) for more detailed usage info.
 ## Future work
 * Full API documentation
