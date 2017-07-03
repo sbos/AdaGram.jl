@@ -115,19 +115,19 @@ void update_z(float* In, float* Out,
 	}
 }
 
-// Run K-means on the word vectors
-void kmeans(int *cl, float* syn0, int classes, int vocab_size, 
-  int layer1_size){
+// Runs K-means on the word vectors; taken from the word2vec clustering routine
+void kmeans(char** words, float* syn0, int classes, int vocab_size, 
+  int layer1_size, char* outputFile){
 
   long a, b, c, d;
-  //FILE *fo;
+  FILE *fo;
   int clcn = classes, iter = 10, closeid;
   int *centcn = (int *)malloc(classes * sizeof(int));
-  //int *cl = (int *)calloc(vocab_size, sizeof(int));
+  int *cl = (int *)calloc(vocab_size, sizeof(int));
   real closev, x;
   real *cent = (real *)calloc(classes * layer1_size, sizeof(real));
 
-  //fo = fopen(output_file, "w");
+  fo = fopen(outputFile, "wb");
 
   for (a = 0; a < vocab_size; a++) cl[a] = a % clcn;
   for (a = 0; a < iter; a++) {
@@ -158,17 +158,13 @@ void kmeans(int *cl, float* syn0, int classes, int vocab_size,
         }
       }
       cl[c] = closeid;
-      printf("%d\n",cl[c]);
+      // Save the K-means classes
+      fprintf(fo, "%s %d\n", words[c], cl[c]);
     }
   }
-  // Save the K-means classes
-  // for (a = 0; a < vocab_size; a++) {
-  // 	fprintf(fo, "%s %d\n", vocab[a], cl[a]);
-  // 	printf("%s %d\n", vocab[a], cl[a]);
-  // }
-  // free(centcn);
-  // free(cent);
-  // free(cl);
-  
-  // fclose(fo);
+
+  free(centcn);
+  free(cent);
+  free(cl);
+  fclose(fo);
 }

@@ -162,38 +162,3 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::Abstrac
 
 	return words_read[1]
 end
-
-# Performs clustering using K-means algorithm adapted from word2vec
-# clustering routine, but handling the representation vector for each
-# different significant meaning of a word. A word can (and probably should)
-# end up in different clusters, according to its different meanings.
-function clustering(vm::VectorModel, dict::Dictionary, outputFile::AbstractString,
-        K::Integer=100; min_prob=1e-3)
-	wordIds = []
-	wordVectors = Float32[]
-
-	# builds arrays with 
-	for w in 1:V(vm)
-		probVec = expected_pi(vm, w)
-		for iMeaning in 1:T(vm)
-			# ignores senses that do not reach min probability
-			if probVec[iMeaning] > min_prob
-				push!(wordIds, w)
-				currentVector = vm.In[:, iMeaning, w]
-				for currentValue in currentVector 
-					push!(wordVectors, currentValue)
-				end
-			end
-		end
-	end
-
-	cl = Array{Int}(size(wordIds,1))
-
-	ccall((:kmeans, "superlib"), Void,
-	    (Ptr{Int}, Ptr{Float32},
-	    	Int, Int, Int), 
-	    cl, wordVectors, K, size(wordIds, 1), M(vm))
-
-	println("finished clustering")
-	println(cl)
-end

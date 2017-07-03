@@ -147,6 +147,5 @@ export disambiguate, write_dictionary
 export likelihood, parallel_likelihood
 export expected_pi!, expected_pi
 export load_model
-export clustering
 
 end
