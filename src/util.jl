@@ -292,9 +292,92 @@ function clustering(vm::VectorModel, dict::Dictionary, outputFile::AbstractStrin
 	println("Finished clustering")
 end
 
+# clustering routine using k-means, modified in the spirit of Clark2000 to account
+# for words that don't clearly fit in a cluster and merging clusters
+function clarkClustering(vm::VectorModel, dict::Dictionary, outputFile::AbstractString;
+	    K::Integer=100 min_prob=1e-2, termination_fraction=0.8, merging_threshold=1)
+    wordVectors = Float32[]
+    words = AbstractString[]
+    wordFrequencies = Int64[]
+
+    # Builds arrays of words and their vectors
+    for w in 1:V(vm)
+        probVec = expected_pi(vm, w)
+        for iMeaning in 1:T(vm)
+            # ignores senses that do not reach min probability
+            if probVec[iMeaning] > min_prob
+                # push!(words, dict.id2word[w])
+                push!(words, w)
+                push!(wordFrequencies, vm.counts[iMeaning, w])
+                push!(wordVectors, vm.In[:, iMeaning, w])
+                # currentVector = vm.In[:, iMeaning, w]
+                # for currentValue in currentVector 
+                #     push!(wordVectors, currentValue)
+                end
+            end
+        end
+    end
+
+    numSenses = length(words) # total num of unique senses to cluster
+    orderFreq = sortperm(wordFrequencies, rev = true) # ordered indexes of most freq. words
+
+    # Initialize clusters with the next most frequent word available
+    for iCluster in 1:K
+        push!(clusters, [orderFreq[iCluster]])
+    end
+    # all less frequent words fall into a default cluster in position K+1
+    push!(clusters, [orderFreq[K+1:end]])
+
+    clusterCenters = []
+    for iInit in 1:K # initialize clusterCenters
+        push!(clusterCenters, zeros(Float32, M(vm))) 
+    end 
+    # initialize closestCluster, closestClusterDistance
+    closestCluster = zeros(Int32, V(vm))
+    closestClusterDistance = zeros(Float32, V(vm))
+
+    currentFraction = 0.2 # initial fraction of words to be clustered
+    fractionIncrease = 0.1
+    # keeps clustering words until termination_fraction of them are clustered
+    while length(clusters[end]) >= numSenses * (1 - termination_fraction)
+        # calculate cluster centers
+        for iCluster in 1:K
+            currentCenter = zeros(Float32, M(vm))
+            for iMember in 1:length(clusters[iCluster])
+                currentCenter += wordVectors[clusters[iCluster][iMember]]
+            end
+            currentCenter /= length(clusters[iCluster]) # averages the centers of every member of the class
+            currentCenter /= norm(currentCenter) # normalizes the center vector
+            clusterCenters[iCluster] = currentCenter
+        end
+
+        # calculate each word's distance to cluster centers, only keep the closest one
+        for iWord in 1:V(vm)
+            distance = -1
+            clusterId = 0
+            for iCluster in 1:K
+                # WARNING: wordVectors are not normalized!!! Check if it's OK
+                dotProd = dot(wordVectors[iWord], clusterCenters[iCluster]) 
+                if dotProd > distance
+                    distance = dotProd
+                    clusterId = iCluster
+                end
+            end
+            closestCluster[iWord] = clusterId
+            closestClusterDistance[iWord] = distance
+        end
+
+        orderDistance = sortperm(closestClusterDistance, rev = true)
+        for iBest in 1:round(Int, currentFraction * V(vm))
+            push!(clusters[closestCluster[orderDistance[iBest]], words[closestClusterDistance[orderDistance[iBest]]])
+        end
+        currentFraction += fractionIncrease
+    end
+end
+
 export nearest_neighbors
 export disambiguate
 export pi, write_extended
 export cos_dist, preprocess, read_word2vec, write_word2vec
 export load_model
-export clustering
+export clustering, clarkClustering

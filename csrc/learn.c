@@ -129,10 +129,12 @@ void kmeans(char** words, float* syn0, int classes, int vocab_size,
 
   fo = fopen(outputFile, "wb");
 
+  // initialize arrays
   for (a = 0; a < vocab_size; a++) cl[a] = a % clcn;
   for (a = 0; a < iter; a++) {
     for (b = 0; b < clcn * layer1_size; b++) cent[b] = 0;
     for (b = 0; b < clcn; b++) centcn[b] = 1;
+    // calculate clusters' centers
     for (c = 0; c < vocab_size; c++) {
       for (d = 0; d < layer1_size; d++) cent[layer1_size * cl[c] + d] += syn0[c * layer1_size + d];
       centcn[cl[c]]++;
@@ -140,12 +142,13 @@ void kmeans(char** words, float* syn0, int classes, int vocab_size,
     for (b = 0; b < clcn; b++) {
       closev = 0;
       for (c = 0; c < layer1_size; c++) {
-        cent[layer1_size * b + c] /= centcn[b];
+        cent[layer1_size * b + c] /= centcn[b]; // averages
         closev += cent[layer1_size * b + c] * cent[layer1_size * b + c];
       }
       closev = sqrt(closev);
-      for (c = 0; c < layer1_size; c++) cent[layer1_size * b + c] /= closev;
+      for (c = 0; c < layer1_size; c++) cent[layer1_size * b + c] /= closev; // normalizes
     }
+	// classify words in clusters
     for (c = 0; c < vocab_size; c++) {
       closev = -10;
       closeid = 0;
