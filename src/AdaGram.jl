@@ -1,7 +1,6 @@
 module AdaGram
 
 using ArrayViews
-using Devectorize
 
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
@@ -51,7 +50,7 @@ function shared_rand{T}(dims::Tuple, norm::T)
 			chunk = localindexes(S)
 			chunk_size = length(chunk)
 			data = rand(chunk_size)
-			@devec data = (data - 0.5) ./ norm
+			data = (data - 0.5) ./ norm
 			S[chunk] = data
 		end)
 	return S
