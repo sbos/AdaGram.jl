@@ -1,17 +1,18 @@
-using Base.Collections
+using DataStructures
 using Base.Order
+using ResumableFunctions
+import Base.length
 
-type HierarchicalSoftmaxNode
+mutable struct HierarchicalSoftmaxNode
 	parent::Int32
 	branch::Bool
 end
 
-type HierarchicalOutput
+struct HierarchicalOutput
 	code::Array{Int8}
 	path::Array{Int}
 end
 
-import Base.length
 
 length(out::HierarchicalOutput) = length(out.path)
 
@@ -19,24 +20,20 @@ function HierarchicalSoftmaxNode()
 	return HierarchicalSoftmaxNode(Int32(0), false)
 end
 
-function softmax_path(nodes::Array{HierarchicalSoftmaxNode},
-		V::Integer, id::Integer)
-	function path()
-		while true
-			node = nodes[id]
-			if node.parent == 0 break; end
-			@assert node.parent > V
-			produce((Int32(node.parent - V), convert(Float64, node.branch)))
-			id = node.parent
-		end
+@resumable function softmax_path(nodes::Array{HierarchicalSoftmaxNode},
+		V::Integer, id::Integer) :: Tuple{Int32, Int8}
+	while true
+		node = nodes[id]
+		if node.parent == 0 break; end
+		@assert node.parent > V
+		@yield (Int32(node.parent - V), Int8(node.branch))
+		id = node.parent
 	end
-
-	return Task(path)
 end
 
-function build_huffman_tree{Tf <: Number}(freqs::Array{Tf})
+function build_huffman_tree(freqs::Array{Tf}) where {Tf <: Number}
 	V = length(freqs)
-	nodes = Array(HierarchicalSoftmaxNode, V)
+	nodes = Array{HierarchicalSoftmaxNode}(undef, V)
 	for v in 1:V
 		nodes[v] = HierarchicalSoftmaxNode()
 	end
@@ -62,19 +59,19 @@ function build_huffman_tree{Tf <: Number}(freqs::Array{Tf})
 		heappush!(heap, (node, freq), freq_ord)
 	end
 
-	@assert length(heap) == 1
+	@assert(length(heap) == 1, string(heap))
 
 	return nodes
 end
 
 function convert_huffman_tree(nodes::Array{HierarchicalSoftmaxNode}, V::Integer)
-	outputs = Array(HierarchicalOutput, V)
+	outputs = Array{HierarchicalOutput, 1}(undef, V)
 	for v in 1:V
-		code = Array(Int8, 0)
-		path = Array(Int, 0)
+		code = Array{Int8, 1}()
+		path = Array{Int, 1}()
 
 		for (n, branch) in softmax_path(nodes, V, v)
-			push!(code, round(UInt8, branch))
+			push!(code, branch)
 			push!(path, n)
 		end
 

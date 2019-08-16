@@ -1,6 +1,26 @@
 module AdaGram
 
-using ArrayViews
+using SharedArrays
+import Base.view
+using LinearAlgebra
+using ResumableFunctions
+using Distributed
+import Base.Iterators.Stateful
+using Printf
+
+using Libdl
+
+_c_update_z = C_NULL
+_c_inplace_update = C_NULL
+_c_skip_gram = C_NULL
+
+function __init__()
+	_libpath = string(@__DIR__, "/../lib/superlib")
+	_c_superlib = dlopen(_libpath)
+	global _c_update_z = dlsym(_c_superlib, :update_z)
+	global _c_inplace_update = dlsym(_c_superlib, :inplace_update)
+	global _c_skip_gram = dlsym(_c_superlib, :skip_gram)
+end
 
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
@@ -10,11 +30,7 @@ Tw = Int32
 
 include("softmax.jl")
 
-import ArrayViews.view
-import ArrayViews.Subs
-import Base.vec
-
-type Dictionary
+struct Dictionary
 	word2id::Dict{AbstractString, Tw}
 	id2word::Array{AbstractString}
 
@@ -27,7 +43,7 @@ type Dictionary
 	end
 end
 
-type VectorModel
+struct VectorModel
 	frequencies::DenseArray{Int64}
 	code::DenseArray{Int8, 2}
 	path::DenseArray{Int32, 2}
@@ -42,25 +58,25 @@ M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
 T(vm::VectorModel) = size(vm.In, 2) #number of meanings
 V(vm::VectorModel) = size(vm.In, 3) #number of words
 
-view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
-view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
+# view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
+# view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 
-function shared_rand{T}(dims::Tuple, norm::T)
-	S = SharedArray(T, dims; init = S -> begin
-			chunk = localindexes(S)
+function shared_rand(dims::Tuple, norm::T) where {T <: AbstractFloat}
+	S = SharedArray{T}(dims; init = S -> begin
+			chunk = localindices(S)
 			chunk_size = length(chunk)
 			data = rand(chunk_size)
-			data = (data - 0.5) ./ norm
+			data .-= 0.5
+			data ./= norm
 			S[chunk] = data
 		end)
 	return S
 end
 
-function shared_zeros{T}(::Type{T}, dims::Tuple)
-	S = SharedArray(T, dims; init = S -> begin
-			chunk = localindexes(S)
-			chunk_size = length(chunk)
-			S[chunk] = 0.
+function shared_zeros(::Type{T}, dims::Tuple) where {T <: Number}
+	S = SharedArray{T}(dims; init = S -> begin
+			chunk = localindices(S)
+			sdata(S[chunk]) .= T(0)
 		end)
 	return S
 end
@@ -70,7 +86,7 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 	path = shared_zeros(Int32, (max_length, V))
 	code = shared_zeros(Int8, (max_length, V))
 
-	code[:] = -1
+	code[:] .= -1
 
 	In =  shared_zeros(Float32, (M, T, V))
 	Out = shared_zeros(Float32, (M, V))
@@ -95,7 +111,7 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 	code = shared_zeros(Int8, (max_length, V))
 
 	for v in 1:V
-		code[:, v] = -1
+		code[:, v] .= -1
 		for i in 1:length(outputs[v])
 			code[i, v] = outputs[v].code[i]
 			path[i, v] = outputs[v].path[i]
@@ -146,5 +162,8 @@ export disambiguate, write_dictionary
 export likelihood, parallel_likelihood
 export expected_pi!, expected_pi
 export load_model
+
+import ArgParse
+export ArgParse
 
 end

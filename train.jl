@@ -1,6 +1,8 @@
 push!(LOAD_PATH, "./src/")
 
-using ArgParse
+using AdaGram
+using AdaGram.ArgParse
+using Distributed
 
 s = ArgParseSettings()
 
@@ -84,8 +86,7 @@ end
 args = parse_args(ARGS, s)
 
 addprocs(args["workers"])
-
-using AdaGram
+@everywhere using AdaGram
 
 stopwords = Set{AbstractString}()
 if args["stopwords"] != nothing
@@ -94,11 +95,9 @@ end
 
 print("Building dictionary... ")
 vm, dict = read_from_file(args["dict"], args["dim"], args["prototypes"],
-  args["min-freq"], args["remove-top-k"], stopwords; regex=Regex(args["regex"]))
+  args["alpha"], args["d"], args["min-freq"], args["remove-top-k"], stopwords;
+  regex=Regex(args["regex"]))
 println("Done!")
-
-vm.alpha = args["alpha"]
-vm.d = args["d"]
 
 window = args["window"]
 

@@ -1,4 +1,4 @@
-function likelihood(vm::VectorModel, doc::DenseArray{Tw},
+function likelihood(vm::VectorModel, doc::AbstractArray{Tw},
 		window_length::Int, min_prob::Float64=1e-5)
 
 	N = length(doc)
@@ -12,7 +12,7 @@ function likelihood(vm::VectorModel, doc::DenseArray{Tw},
 		x = doc[i]
 
 		window = window_length
-		z[:] = 0.
+		z[:] .= 0.
 
 		expected_pi!(z, vm, x)
 
@@ -50,13 +50,13 @@ function likelihood(vm::VectorModel, dict::Dictionary, f::IO,
 	return ll / j
 end
 
-function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractString,
-		window_length::Int, min_prob::Float64=1e-5; batch::Int=16777216, 
-		log::Union{Void, AbstractString}=nothing)
+function parallel_likelihood(vm::VectorModel, dict::Dictionary,
+	path::AbstractString, window_length::Int, min_prob::Float64=1e-5;
+	batch::Int=16777216, log::Union{AbstractString, Nothing}=nothing)
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
-	stats = Array(Tuple{Float64, Int64}, 0)
+	stats = Array{Tuple{Float64, Int64}, 1}()
 
 	function do_work(id::Int)
 		file = open(path)
@@ -69,7 +69,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractSt
 		seek(file, start_pos)
 		align(file)
 		buffer = zeros(Int32, batch)
-		local_stats = Array(Tuple{Float64, Int64}, 0)
+		local_stats = Array{Tuple{Float64, Int64}, 1}()
 		while true
 			doc = read_words(file, dict, buffer, batch, end_pos)
 
@@ -83,16 +83,16 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractSt
 		return local_stats
 	end
 
-	refs = Array(RemoteRef, nworkers())
+	refs = Array{Future, 1}(undef, nworkers())
 	for i in 1:nworkers()
-		refs[i] = remotecall(i+1, do_work, i)
+		refs[i] = remotecall(do_work, i+1, i)
 	end
 
 	for i in 1:nworkers()
 		append!(stats, fetch(refs[i]))
 	end
 
-	log_file = if log == nothing STDOUT else open(log, "w") end
+	log_file = if log == nothing stdout else open(log, "w") end
 	total_n = 0
 	total_mean = Kahan(Float64)
 	for (ll, n) in stats
@@ -101,7 +101,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary, path::AbstractSt
 		d = ll - sum(total_mean)
 		add!(total_mean, n * d / total_n)
 	end
-	if log_file != STDOUT close(log_file) end
+	if log_file != stdout close(log_file) end
 
 	return sum(total_mean)
 end

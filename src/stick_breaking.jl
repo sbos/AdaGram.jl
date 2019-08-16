@@ -1,9 +1,12 @@
+using SpecialFunctions
+
 mean_beta(a, b) = a / (a + b)
 meanlog_beta(a, b) = digamma(a) - digamma(a + b)
 mean_mirror(a, b) = mean_beta(b, a)
 meanlog_mirror(a, b) = meanlog_beta(b, a)
 
-function expected_logpi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel, w::Tw, min_prob::Float64=1e-3)
+function expected_logpi!(pi::Vector{Float64}, vm::VectorModel, w::Tw,
+	min_prob::Float64=1e-3) where {Tw <: Integer}
 	r = 0.
 	x = 1.
 	senses = 0
@@ -24,10 +27,10 @@ function expected_logpi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel, w:
 	pi[T(vm)] = r
 	if x >= min_prob senses += 1 end
 	return senses
-end 
+end
 
-function expected_pi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel, 
-		w::Tw, min_prob=1e-3)
+function expected_pi!(pi::Vector{Float64}, vm::VectorModel,
+		w::Tw, min_prob=1e-3) where {Tw <: Integer}
 	r = 1.
 	senses = 0
 	ts = sum(view(vm.counts, :, w))
@@ -43,7 +46,8 @@ function expected_pi!{Tw <: Integer}(pi::Vector{Float64}, vm::VectorModel,
 	return senses
 end
 
-function expected_pi{Tw <: Integer}(vm::VectorModel, w::Tw, min_prob=1e-3)
+function expected_pi(vm::VectorModel, w::Tw, min_prob=1e-3) where
+	{Tw <: Integer}
 	z = zeros(T(vm))
 	expected_pi!(z, vm, w, min_prob)
 	return z

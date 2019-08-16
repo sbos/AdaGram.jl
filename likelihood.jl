@@ -1,6 +1,8 @@
 push!(LOAD_PATH, "./src/")
 
-using ArgParse
+using AdaGram
+using AdaGram.ArgParse
+using Distributed
 
 s = ArgParseSettings()
 
@@ -35,11 +37,9 @@ s = ArgParseSettings()
 end
 
 args = parse_args(ARGS, s)
+
 addprocs(args["workers"])
-
-# require("AdaGram.jl")
-
-using AdaGram
+@everywhere using AdaGram
 
 vm, dict = load_model(args["model"])
 println(parallel_likelihood(vm, dict, args["text"], args["window"], args["minprob"];

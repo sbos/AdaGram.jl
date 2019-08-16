@@ -1,6 +1,6 @@
-import Base.BLAS.axpy!
+import LinearAlgebra.axpy!
 
-function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
+function inplace_train_vectors!(vm::VectorModel, doc::AbstractArray{Tw},
 		window_length::Int,
 		start_lr::Float64, total_words::Float64, words_read::DenseArray{Int64},
 		total_ll::DenseArray{Float64}; batch::Int=10000,
@@ -14,7 +14,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 	senses = 0.
 	max_senses = 0.
 
-	tic()
+	start_time = time()
 	for i in 1:N
 		x = doc[i]
 		lr1 = max(start_lr * (1 - words_read[1] / (total_words+1)), start_lr * 1e-4)
@@ -23,7 +23,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		random_reduce = context_cut ? rand(1:window_length-1) : 0
 		window = window_length - random_reduce
 
-		z[:] = 0.
+		z[:] .= 0.
 
 		n_senses = var_init_z!(vm, x, z)
 		senses += n_senses
@@ -43,7 +43,6 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 			total_ll[2] += 1
 			total_ll[1] += (ll - total_ll[1]) / total_ll[2]
-			
 		end
 
 		words_read[1] += 1
@@ -52,24 +51,22 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		var_update_counts!(vm, x, z, lr2)
 
 		if i % batch == 0
-			time_per_kword = batch / toq() / 1000
+			time_per_kword = batch / (time() - start_time) / 1000
 			@printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
 					total_ll[1], lr1, lr2, senses / i, max_senses, time_per_kword)
-			tic()
+			start_time = time()
 		end
 
 		if words_read[1] > total_words break end
 	end
-	toq()
 end
 
-function in_place_update!{Tw <: Integer}(vm::VectorModel,
-		x::Tw, y::Tw, z::DenseArray{Float64}, lr::Float64,
-		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, sense_treshold::Float64)
+function in_place_update!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
+	lr::Float64, in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf},
+	sense_treshold::Float64) where {Tw <: Integer}
 
-
-	return ccall((:inplace_update, "superlib"), Float32,
+	return ccall(_c_inplace_update, Float32,
 		(Ptr{Float32}, Ptr{Float32},
 			Int, Int, Ptr{Float64},
 			Int,
@@ -88,9 +85,9 @@ function var_init_z!(vm::VectorModel, x::Integer, z::DenseArray{Float64})
 	return expected_logpi!(z, vm, x)
 end
 
-function var_update_z!{Tw <: Integer}(vm::VectorModel,
-		x::Tw, y::Tw, z::DenseArray{Float64}, num_meanings::Int=T(vm))
-	ccall((:update_z, "superlib"), Void,
+function var_update_z!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
+	num_meanings::Int=T(vm)) where {Tw <: Integer}
+ 	ccall(_c_update_z, Cvoid,
 		(Ptr{Float32}, Ptr{Float32},
 			Int, Int, Ptr{Float64}, Int,
 			Ptr{Int32}, Ptr{Int8}, Int64),
@@ -109,8 +106,9 @@ end
 
 function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::AbstractString,
 		window_length::Int; batch::Int = 64000, start_lr::Float64 = 0.025,
-		log_path::Union{AbstractString, Void} = nothing, threshold::Float64 = Inf,
-		context_cut::Bool = true, epochs::Int = 1, init_count::Float64=-1, sense_treshold::Float64=1e-32)
+		log_path::Union{AbstractString, Nothing} = nothing,
+		threshold::Float64 = Inf, context_cut::Bool = true, epochs::Int = 1,
+		init_count::Float64=-1, sense_treshold::Float64=1e-32)
 	for w in 1:V(vm)
 		vm.counts[1, w] = init_count > 0 ? init_count : vm.frequencies[w]
 	end
@@ -149,9 +147,9 @@ function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::Abstrac
 		close(file)
 	end
 
-	refs = Array(RemoteRef, nworkers())
+	refs = Array{Future, 1}(undef, nworkers())
 	for i in 1:nworkers()
-		refs[i] = remotecall(i+1, do_work, i)
+		refs[i] = remotecall(do_work, i+1, i)
 	end
 
 	for i in 1:nworkers()

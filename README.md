@@ -6,8 +6,8 @@ Adaptive Skip-gram (AdaGram) model is a nonparametric extension of famous Skip-g
 
 AdaGram is not in the julia package repository yet, so it should be installed in the following way:
 ```
-Pkg.clone("https://github.com/sbos/AdaGram.jl.git")
-Pkg.build("AdaGram")
+using Pkg
+Pkg.add(PackageSpec(url="https://github.com/sbos/AdaGram.jl.git"))
 ```
 
 ## Training a model
@@ -20,19 +20,19 @@ usage: train.jl [--window WINDOW] [--workers WORKERS]
                 [--d D] [--subsample SUBSAMPLE] [--context-cut]
                 [--epochs EPOCHS] [--init-count INIT-COUNT]
                 [--stopwords STOPWORDS]
-                [--sense-treshold SENSE-TRESHOLD] [--regex REGEX] [-h] 
+                [--sense-treshold SENSE-TRESHOLD] [--regex REGEX] [-h]
                 train dict output
 ```
 Here is the description of all parameters:
 * `WINDOW` is a half-context size. Useful values are 3-10.
 * `WORKERS` is how much parallel processes will be used for training.
 * `MIN-FREQ` specifies the minimum word frequency below which a word will be ignored. Useful values are 5-50 depending on the corpora.
-* `REMOVE-TOP-K` allows to ignore K most frequent words as well. 
+* `REMOVE-TOP-K` allows to ignore K most frequent words as well.
 * `DIM` is the dimensionality of learned representations
 * `PROTOTYPES` sets the maximum number of learned prototypes. This is the truncating level used in truncated stick-breaking, so the actual amount of memory used depends on this number linearly.
 * `ALPHA` is the parameter of underlying Dirichlet process. Larger values of `ALPHA` lead to more meanings discovered. Useful values are 0.05-0.2.
 * `D` is used together with `ALPHA` in Pitman-Yor process and `D`=0 turns it into Dirichlet process. We couldn’t get reasonable results with PY, but left the option to change `D`.
-* `SUBSAMPLE` is a threshold for subsampling frequent words, similarly to how this is done in word2vec. 
+* `SUBSAMPLE` is a threshold for subsampling frequent words, similarly to how this is done in word2vec.
 * `—context-cut` option allows to randomly decrease `WINDOW` during the training, which increases training speed with almost no effects on model’s performance
 * `EPOCHS` specifies the number of passes over training text, usually one epoch is enough, larger number of epochs is usually required on small corpora.
 * `INIT-COUNT` is used for initialization of variational stick-breaking distribution. All prototypes are assigned with zero occurrences except first one which is assigned with `INIT-COUNT`. Zero value means that first prototype gets all occurrences.
@@ -72,16 +72,16 @@ julia> expected_pi(vm, dict.word2id["apple"])
 30-element Array{Float64,1}:
  0.341832   
  0.658164   
- 3.13843e-6 
- 2.84892e-7 
- 2.58649e-8 
- 2.34823e-9 
+ 3.13843e-6
+ 2.84892e-7
+ 2.58649e-8
+ 2.34823e-9
  2.13192e-10
  1.93554e-11
  1.75725e-12
  ⋮          
 ```
-This function returns a `--prototypes`-sized array with prior probability of each prototype. As one may see, in this example only first two prototypes have probabilities significantly larger than zero, and thus we may conclude that only two meanings of word "apple" were discovered. 
+This function returns a `--prototypes`-sized array with prior probability of each prototype. As one may see, in this example only first two prototypes have probabilities significantly larger than zero, and thus we may conclude that only two meanings of word "apple" were discovered.
 We may examine each prototype by looking at its 10 nearest neighbours:
 ```
 julia> nearest_neighbors(vm, dict, "apple", 1, 10)
@@ -106,7 +106,7 @@ julia> nearest_neighbors(vm, dict, "apple", 2, 10)
  ("ipad",1,0.6914306f0)           
  ("pc",4,0.6801078f0)             
  ("ibm",1,0.66797054f0)           
- ("powerpc-based",1,0.66319686f0) 
+ ("powerpc-based",1,0.66319686f0)
  ("ibm-compatible",1,0.66120595f0)
 ```
 Now if we provide a context for word "apple" we may obtain posterior probability of each prototype:
@@ -146,6 +146,5 @@ Plase refer to [API documentation](https://github.com/sbos/AdaGram.jl/wiki/API) 
 
 ## References
 
-1. [Project homepage](http://bayesgroup.ru/adagram)
-2. Sergey Bartunov, Dmitry Kondrashkin, Anton Osokin, Dmitry Vetrov. Breaking Sticks and Ambiguities with Adaptive Skip-gram.  [ArXiv preprint](http://arxiv.org/abs/1502.07257), 2015
-3. Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeffrey Dean. Distributed Representations of Words and Phrases and their Compositionality. In Proceedings of NIPS, 2013.
+1. Sergey Bartunov, Dmitry Kondrashkin, Anton Osokin, Dmitry Vetrov. Breaking Sticks and Ambiguities with Adaptive Skip-gram.  [ArXiv preprint](http://arxiv.org/abs/1502.07257), 2015
+2. Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeffrey Dean. Distributed Representations of Words and Phrases and their Compositionality. In Proceedings of NIPS, 2013.
