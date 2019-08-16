@@ -1,4 +1,4 @@
-import Base.BLAS.axpy!
+import LinearAlgebra.axpy!
 
 function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 		window_length::Int,
@@ -43,7 +43,6 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 			total_ll[2] += 1
 			total_ll[1] += (ll - total_ll[1]) / total_ll[2]
-			
 		end
 
 		words_read[1] += 1
@@ -53,7 +52,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 
 		if i % batch == 0
 			time_per_kword = batch / toq() / 1000
-			@printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
+			printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
 					total_ll[1], lr1, lr2, senses / i, max_senses, time_per_kword)
 			tic()
@@ -64,9 +63,9 @@ function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
 	toq()
 end
 
-function in_place_update!{Tw <: Integer}(vm::VectorModel,
-		x::Tw, y::Tw, z::DenseArray{Float64}, lr::Float64,
-		in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf}, sense_treshold::Float64)
+function in_place_update!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
+	lr::Float64, in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf},
+	sense_treshold::Float64) where {Tw <: Integer}
 
 
 	return ccall((:inplace_update, "superlib"), Float32,
@@ -88,9 +87,9 @@ function var_init_z!(vm::VectorModel, x::Integer, z::DenseArray{Float64})
 	return expected_logpi!(z, vm, x)
 end
 
-function var_update_z!{Tw <: Integer}(vm::VectorModel,
-		x::Tw, y::Tw, z::DenseArray{Float64}, num_meanings::Int=T(vm))
-	ccall((:update_z, "superlib"), Void,
+function var_update_z!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
+	num_meanings::Int=T(vm)) where {Tw <: Integer}
+	ccall((:update_z, "superlib"), Cvoid,
 		(Ptr{Float32}, Ptr{Float32},
 			Int, Int, Ptr{Float64}, Int,
 			Ptr{Int32}, Ptr{Int8}, Int64),
@@ -109,8 +108,9 @@ end
 
 function inplace_train_vectors!(vm::VectorModel, dict::Dictionary, path::AbstractString,
 		window_length::Int; batch::Int = 64000, start_lr::Float64 = 0.025,
-		log_path::Union{AbstractString, Void} = nothing, threshold::Float64 = Inf,
-		context_cut::Bool = true, epochs::Int = 1, init_count::Float64=-1, sense_treshold::Float64=1e-32)
+		log_path::Union{AbstractString, Nothing} = nothing,
+		threshold::Float64 = Inf, context_cut::Bool = true, epochs::Int = 1,
+		init_count::Float64=-1, sense_treshold::Float64=1e-32)
 	for w in 1:V(vm)
 		vm.counts[1, w] = init_count > 0 ? init_count : vm.frequencies[w]
 	end

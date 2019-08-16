@@ -1,0 +1,8 @@
+name = "AdaGram"
+uuid = "424fa755-8aa4-4cfc-8b8d-417fd2cd5e9a"
+author = ["Sergey Bartunov <sbos.net@gmail.com>"]
+version = "1.0.0"
+
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

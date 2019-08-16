@@ -231,9 +231,9 @@ end
 
 cos_dist(x, y) = 1. - dot(x, y) / norm(x, 2) / norm(y, 2)
 
-function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
+function disambiguate(vm::VectorModel, x::Tw,
 		context::AbstractArray{Tw, 1}, use_prior::Bool=true,
-		min_prob::Float64=1e-3)
+		min_prob::Float64=1e-3) where {Tw <: Integer}
 	z = zeros(T(vm))
 
 	if use_prior
@@ -250,11 +250,13 @@ function disambiguate{Tw <: Integer}(vm::VectorModel, x::Tw,
 	end
 
 	exp_normalize!(z)
-	
+
 	return z
 end
 
-function disambiguate{Ts <: AbstractString}(vm::VectorModel, dict::Dictionary, x::AbstractString, context::AbstractArray{Ts, 1}, use_prior::Bool=true, min_prob::Float64=1e-3)
+function disambiguate(vm::VectorModel, dict::Dictionary, x::AbstractString,
+	context::AbstractArray{Ts, 1}, use_prior::Bool=true,
+	min_prob::Float64=1e-3) where {Ts <: AbstractString}
 	return disambiguate(vm, dict.word2id[x], Int32[dict.word2id[y] for y in context], use_prior, min_prob)
 end
 

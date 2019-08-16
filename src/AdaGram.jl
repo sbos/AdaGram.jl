@@ -1,7 +1,5 @@
 module AdaGram
 
-using ArrayViews
-
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
 
@@ -10,11 +8,7 @@ Tw = Int32
 
 include("softmax.jl")
 
-import ArrayViews.view
-import ArrayViews.Subs
-import Base.vec
-
-type Dictionary
+struct Dictionary
 	word2id::Dict{AbstractString, Tw}
 	id2word::Array{AbstractString}
 
@@ -27,7 +21,7 @@ type Dictionary
 	end
 end
 
-type VectorModel
+struct VectorModel
 	frequencies::DenseArray{Int64}
 	code::DenseArray{Int8, 2}
 	path::DenseArray{Int32, 2}
@@ -42,10 +36,10 @@ M(vm::VectorModel) = size(vm.In, 1) #dimensionality of word vectors
 T(vm::VectorModel) = size(vm.In, 2) #number of meanings
 V(vm::VectorModel) = size(vm.In, 3) #number of words
 
-view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
-view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
+# view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
+# view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 
-function shared_rand{T}(dims::Tuple, norm::T)
+function shared_rand(dims::Tuple, norm::T) where {T <: Number}
 	S = SharedArray(T, dims; init = S -> begin
 			chunk = localindexes(S)
 			chunk_size = length(chunk)
@@ -56,7 +50,7 @@ function shared_rand{T}(dims::Tuple, norm::T)
 	return S
 end
 
-function shared_zeros{T}(::Type{T}, dims::Tuple)
+function shared_zeros(::Type{T}, dims::Tuple) where {T <: Number}
 	S = SharedArray(T, dims; init = S -> begin
 			chunk = localindexes(S)
 			chunk_size = length(chunk)

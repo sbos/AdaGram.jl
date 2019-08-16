@@ -1,12 +1,9 @@
-using Base.Collections
-using Base.Order
-
-type HierarchicalSoftmaxNode
+mutable struct HierarchicalSoftmaxNode
 	parent::Int32
 	branch::Bool
 end
 
-type HierarchicalOutput
+struct HierarchicalOutput
 	code::Array{Int8}
 	path::Array{Int}
 end
@@ -34,7 +31,7 @@ function softmax_path(nodes::Array{HierarchicalSoftmaxNode},
 	return Task(path)
 end
 
-function build_huffman_tree{Tf <: Number}(freqs::Array{Tf})
+function build_huffman_tree(freqs::Array{Tf}) where {Tf <: Number}
 	V = length(freqs)
 	nodes = Array(HierarchicalSoftmaxNode, V)
 	for v in 1:V
