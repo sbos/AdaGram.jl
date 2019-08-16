@@ -42,20 +42,20 @@ V(vm::VectorModel) = size(vm.In, 3) #number of words
 # view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 
 function shared_rand(dims::Tuple, norm::T) where {T <: Number}
-	S = SharedArray(T, dims; init = S -> begin
-			chunk = localindexes(S)
+	S = SharedArray{T}(dims; init = S -> begin
+			chunk = localindices(S)
 			chunk_size = length(chunk)
 			data = rand(chunk_size)
-			data = (data - 0.5) ./ norm
+			data .-= 0.5
+			data ./= norm
 			S[chunk] = data
 		end)
 	return S
 end
 
 function shared_zeros(::Type{T}, dims::Tuple) where {T <: Number}
-	S = SharedArray(T, dims; init = S -> begin
-			chunk = localindexes(S)
-			chunk_size = length(chunk)
+	S = SharedArray{T}(dims; init = S -> begin
+			chunk = localindices(S)
 			S[chunk] = 0.
 		end)
 	return S
