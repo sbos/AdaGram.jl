@@ -1,6 +1,7 @@
 push!(LOAD_PATH, "./src/")
 
-using ArgParse
+using AdaGram
+using AdaGram.ArgParse
 
 s = ArgParseSettings()
 
@@ -84,8 +85,6 @@ end
 args = parse_args(ARGS, s)
 
 addprocs(args["workers"])
-
-using AdaGram
 
 stopwords = Set{AbstractString}()
 if args["stopwords"] != nothing

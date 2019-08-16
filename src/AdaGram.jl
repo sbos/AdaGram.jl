@@ -1,5 +1,7 @@
 module AdaGram
 
+using SharedArrays
+
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
 
