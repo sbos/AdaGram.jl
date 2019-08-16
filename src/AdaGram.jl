@@ -141,4 +141,7 @@ export likelihood, parallel_likelihood
 export expected_pi!, expected_pi
 export load_model
 
+import ArgParse
+export ArgParse
+
 end
