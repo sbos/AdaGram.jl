@@ -12,7 +12,7 @@ function likelihood(vm::VectorModel, doc::AbstractArray{Tw},
 		x = doc[i]
 
 		window = window_length
-		z[:] = 0.
+		z[:] .= 0.
 
 		expected_pi!(z, vm, x)
 
