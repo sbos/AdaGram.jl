@@ -7,7 +7,8 @@ function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords
 		try
 			word, freq = split(readline(fin))
 			freq_num = parse(Int64, freq)
-			if freq_num < min_freq || word in stopwords || !ismatch(regex, word) continue end
+			if freq_num < min_freq || word in stopwords ||
+				match(regex, word) == nothing continue end
 			push!(id2word, word)
 			push!(freqs, freq_num)
 		catch e

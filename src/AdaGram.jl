@@ -107,7 +107,7 @@ function VectorModel(freqs::Array{Int64}, M::Int64, T::Int64=1, alpha::Float64=1
 	code = shared_zeros(Int8, (max_length, V))
 
 	for v in 1:V
-		code[:, v] = -1
+		code[:, v] .= -1
 		for i in 1:length(outputs[v])
 			code[i, v] = outputs[v].code[i]
 			path[i, v] = outputs[v].path[i]

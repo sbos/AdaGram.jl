@@ -1,5 +1,7 @@
 using DataStructures
 using Base.Order
+using ResumableFunctions
+import Base.length
 
 mutable struct HierarchicalSoftmaxNode
 	parent::Int32
@@ -11,7 +13,6 @@ struct HierarchicalOutput
 	path::Array{Int}
 end
 
-import Base.length
 
 length(out::HierarchicalOutput) = length(out.path)
 
@@ -19,19 +20,15 @@ function HierarchicalSoftmaxNode()
 	return HierarchicalSoftmaxNode(Int32(0), false)
 end
 
-function softmax_path(nodes::Array{HierarchicalSoftmaxNode},
-		V::Integer, id::Integer)
-	function path()
-		while true
-			node = nodes[id]
-			if node.parent == 0 break; end
-			@assert node.parent > V
-			produce((Int32(node.parent - V), convert(Float64, node.branch)))
-			id = node.parent
-		end
+@resumable function softmax_path(nodes::Array{HierarchicalSoftmaxNode},
+		V::Integer, id::Integer) :: Tuple{Int32, Int8}
+	while true
+		node = nodes[id]
+		if node.parent == 0 break; end
+		@assert node.parent > V
+		@yield (Int32(node.parent - V), Int8(node.branch))
+		id = node.parent
 	end
-
-	return Task(path)
 end
 
 function build_huffman_tree(freqs::Array{Tf}) where {Tf <: Number}
@@ -68,13 +65,13 @@ function build_huffman_tree(freqs::Array{Tf}) where {Tf <: Number}
 end
 
 function convert_huffman_tree(nodes::Array{HierarchicalSoftmaxNode}, V::Integer)
-	outputs = Array(HierarchicalOutput, V)
+	outputs = Array{HierarchicalOutput, 1}(undef, V)
 	for v in 1:V
 		code = Array{Int8, 1}()
 		path = Array{Int, 1}()
 
 		for (n, branch) in softmax_path(nodes, V, v)
-			push!(code, round(UInt8, branch))
+			push!(code, branch)
 			push!(path, n)
 		end
 
