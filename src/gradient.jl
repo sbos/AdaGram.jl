@@ -52,7 +52,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::AbstractArray{Tw},
 
 		if i % batch == 0
 			time_per_kword = batch / (time() - start_time) / 1000
-			printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
+			@printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
 					total_ll[1], lr1, lr2, senses / i, max_senses, time_per_kword)
 			start_time = time()
