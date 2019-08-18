@@ -14,7 +14,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::AbstractArray{Tw},
 	senses = 0.
 	max_senses = 0.
 
-	tic()
+	start_time = time()
 	for i in 1:N
 		x = doc[i]
 		lr1 = max(start_lr * (1 - words_read[1] / (total_words+1)), start_lr * 1e-4)
@@ -51,16 +51,15 @@ function inplace_train_vectors!(vm::VectorModel, doc::AbstractArray{Tw},
 		var_update_counts!(vm, x, z, lr2)
 
 		if i % batch == 0
-			time_per_kword = batch / toq() / 1000
+			time_per_kword = batch / (time() - start_time) / 1000
 			printf("%.2f%% %.4f %.4f %.4f %.2f/%.2f %.2f kwords/sec\n",
 					words_read[1] / (total_words / 100),
 					total_ll[1], lr1, lr2, senses / i, max_senses, time_per_kword)
-			tic()
+			start_time = time()
 		end
 
 		if words_read[1] > total_words break end
 	end
-	toq()
 end
 
 function in_place_update!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
