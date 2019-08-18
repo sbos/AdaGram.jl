@@ -1,8 +1,8 @@
 function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords::Set{AbstractString}=Set{AbstractString}();
 		regex::Regex=r"")
 	fin = open(vocab_path)
-	freqs = Array{Int64}()
-	id2word = Array{AbstractString}()
+	freqs = Array{Int64, 1}()
+	id2word = Array{AbstractString, 1}()
 	while !eof(fin)
 		try
 			word, freq = split(readline(fin))
@@ -54,7 +54,7 @@ function read_word2vec(path::AbstractString)
 	M = parse(Int64, line[2])
 
 	In = zeros(Float32, M, V)
-	id2word = Array{AbstractString}()
+	id2word = Array{AbstractString, 1}()
 
 	for v in 1:V
 		word = readuntil(fin, ' ')[1:end-1]
