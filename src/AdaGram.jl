@@ -6,6 +6,7 @@ using LinearAlgebra
 using ResumableFunctions
 using Distributed
 import Base.Iterators.Stateful
+import Base.Iterators.Repeated
 
 using Libdl
 
