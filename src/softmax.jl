@@ -1,3 +1,6 @@
+using DataStructures
+using Base.Order
+
 mutable struct HierarchicalSoftmaxNode
 	parent::Int32
 	branch::Bool
@@ -67,8 +70,8 @@ end
 function convert_huffman_tree(nodes::Array{HierarchicalSoftmaxNode}, V::Integer)
 	outputs = Array(HierarchicalOutput, V)
 	for v in 1:V
-		code = Array(Int8, 0)
-		path = Array(Int, 0)
+		code = Array{Int8, 1}()
+		path = Array{Int, 1}()
 
 		for (n, branch) in softmax_path(nodes, V, v)
 			push!(code, round(UInt8, branch))
