@@ -1,4 +1,4 @@
-function likelihood(vm::VectorModel, doc::DenseArray{Tw},
+function likelihood(vm::VectorModel, doc::AbstractArray{Tw},
 		window_length::Int, min_prob::Float64=1e-5)
 
 	N = length(doc)
