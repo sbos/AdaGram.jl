@@ -56,7 +56,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary,
 	nbytes = filesize(path)
 
 	words_read = shared_zeros(Int64, (1,))
-	stats = Array(Tuple{Float64, Int64}, 0)
+	stats = Array{Tuple{Float64, Int64}, 1}()
 
 	function do_work(id::Int)
 		file = open(path)
@@ -69,7 +69,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary,
 		seek(file, start_pos)
 		align(file)
 		buffer = zeros(Int32, batch)
-		local_stats = Array(Tuple{Float64, Int64}, 0)
+		local_stats = Array{Tuple{Float64, Int64}, 1}()
 		while true
 			doc = read_words(file, dict, buffer, batch, end_pos)
 
@@ -83,9 +83,9 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary,
 		return local_stats
 	end
 
-	refs = Array(RemoteRef, nworkers())
+	refs = Array{Future, 1}(nworkers())
 	for i in 1:nworkers()
-		refs[i] = remotecall(i+1, do_work, i)
+		refs[i] = remotecall(do_work, i+1, i)
 	end
 
 	for i in 1:nworkers()
