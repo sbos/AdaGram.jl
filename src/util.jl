@@ -136,7 +136,7 @@ function load_model(path::AbstractString)
 
 	buffer = zeros(Float32, M(vm))
 
-	id2word = Array(AbstractString, 0)
+	id2word = Array{AbstractString, 1}()
 	for v in 1:V(vm)
 		word = strip(readline(file))
 		nsenses = parse(Int, readline(file))
@@ -198,22 +198,17 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 			end
 			in_vs = view(vm.In, :, s, v)
 			sim[s, v] = dot(in_vs, word) / norm(in_vs)
+			@assert(!isnan(sim[s, v]), "NaN found, $s, $(dict.id2word[v])")
 		end
 	end
 	for (v, s) in exclude
 		sim[s, v] = -Inf
 	end
-	top = Array(Tuple{Int, Int}, K)
+	top = Array{Tuple{Int, Int}}(undef, K)
 	topSim = zeros(Tsf, K)
 
-	function split_index(sim, i)
-		i -= 1
-		v = i % size(sim, 1) + 1
-		s = Int(floor(i / size(sim, 1))) + 1
-		return v, s
-	end
 	for k in 1:K
-		curr_max = split_index(sim, indmax(sim))
+		curr_max = argmax(sim)
 		topSim[k] = sim[curr_max[1], curr_max[2]]
 		sim[curr_max[1], curr_max[2]] = -Inf
 
@@ -224,9 +219,10 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 end
 
 function nearest_neighbors(vm::VectorModel, dict::Dictionary,
-		w::AbstractString, s::Int, K::Integer=10)
+		w::AbstractString, s::Int, K::Integer=10; min_count::Float64=1.)
 	v = dict.word2id[w]
-	return nearest_neighbors(vm, dict, vec(vm, v, s), K; exclude=[(v, s)])
+	return nearest_neighbors(vm, dict, vec(vm, v, s), K;
+		exclude=[(v, s)], min_count=min_count)
 end
 
 cos_dist(x, y) = 1. - dot(x, y) / norm(x, 2) / norm(y, 2)

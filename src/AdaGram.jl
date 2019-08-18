@@ -1,6 +1,22 @@
 module AdaGram
 
 using SharedArrays
+import Base.view
+using LinearAlgebra
+
+using Libdl
+
+_c_update_z = C_NULL
+_c_inplace_update = C_NULL
+_c_skip_gram = C_NULL
+
+function __init__()
+	_libpath = string(@__DIR__, "/../lib/superlib")
+	_c_superlib = dlopen(_libpath)
+	global _c_update_z = dlsym(_c_superlib, :update_z)
+	global _c_inplace_update = dlsym(_c_superlib, :inplace_update)
+	global _c_skip_gram = dlsym(_c_superlib, :skip_gram)
+end
 
 sigmoid(x) = 1. / (1. + exp(-x))
 log_sigmoid(x) = -log(1. + exp(-x))
@@ -41,7 +57,7 @@ V(vm::VectorModel) = size(vm.In, 3) #number of words
 # view(x::SharedArray, i1::Subs, i2::Subs) = view(sdata(x), i1, i2)
 # view(x::SharedArray, i1::Subs, i2::Subs, i3::Subs) = view(sdata(x), i1, i2, i3)
 
-function shared_rand(dims::Tuple, norm::T) where {T <: Number}
+function shared_rand(dims::Tuple, norm::T) where {T <: AbstractFloat}
 	S = SharedArray{T}(dims; init = S -> begin
 			chunk = localindices(S)
 			chunk_size = length(chunk)
@@ -56,7 +72,7 @@ end
 function shared_zeros(::Type{T}, dims::Tuple) where {T <: Number}
 	S = SharedArray{T}(dims; init = S -> begin
 			chunk = localindices(S)
-			S[chunk] = 0.
+			S[chunk] .= T(0)
 		end)
 	return S
 end
@@ -66,7 +82,7 @@ function VectorModel(max_length::Int64, V::Int64, M::Int64, T::Int64=1, alpha::F
 	path = shared_zeros(Int32, (max_length, V))
 	code = shared_zeros(Int8, (max_length, V))
 
-	code[:] = -1
+	code[:] .= -1
 
 	In =  shared_zeros(Float32, (M, T, V))
 	Out = shared_zeros(Float32, (M, V))

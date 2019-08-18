@@ -67,8 +67,7 @@ function in_place_update!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
 	lr::Float64, in_grad::DenseArray{Tsf, 2}, out_grad::DenseArray{Tsf},
 	sense_treshold::Float64) where {Tw <: Integer}
 
-
-	return ccall((:inplace_update, "superlib"), Float32,
+	return ccall(_c_inplace_update, Float32,
 		(Ptr{Float32}, Ptr{Float32},
 			Int, Int, Ptr{Float64},
 			Int,
@@ -89,7 +88,7 @@ end
 
 function var_update_z!(vm::VectorModel, x::Tw, y::Tw, z::DenseArray{Float64},
 	num_meanings::Int=T(vm)) where {Tw <: Integer}
-	ccall((:update_z, "superlib"), Cvoid,
+ 	ccall(_c_update_z, Cvoid,
 		(Ptr{Float32}, Ptr{Float32},
 			Int, Int, Ptr{Float64}, Int,
 			Ptr{Int32}, Ptr{Int8}, Int64),
