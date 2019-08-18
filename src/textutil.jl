@@ -12,7 +12,6 @@ end
   while (end_pos < 0 || position(f) < end_pos) && !eof(f)
     w = readuntil(f, ' ')
     if length(w) < 1 break end
-    w = w[1:end-1]
     if !adagram_isblank(w)
         @yield w
     end
@@ -24,7 +23,6 @@ end
   while true
     w = readuntil(f, ' ')
     if length(w) < 1 break end
-    w = w[1:end-1]
     if !adagram_isblank(w)
       @yield w
     end
