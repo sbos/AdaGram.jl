@@ -1,5 +1,5 @@
-function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords::Set{AbstractString}=Set{AbstractString}();
-		regex::Regex=r"")
+function read_from_file(vocab_path::AbstractString, min_freq::Int64=0,
+	stopwords::Set{AbstractString}=Set{AbstractString}(); regex::Regex=r"")
 	fin = open(vocab_path)
 	freqs = Array{Int64, 1}()
 	id2word = Array{AbstractString, 1}()
@@ -19,7 +19,8 @@ function read_from_file(vocab_path::AbstractString, min_freq::Int64=0, stopwords
 	return freqs, id2word
 end
 
-function read_from_file(vocab_path::AbstractString, M::Int, T::Int, min_freq::Int=5,
+function read_from_file(vocab_path::AbstractString, M::Int, T::Int,
+	alpha::Float64, d::Float64=0., min_freq::Int=5,
 	removeTopK::Int=70, stopwords::Set{AbstractString}=Set{AbstractString}();
 	regex::Regex=r"")
 	freqs, id2word = read_from_file(vocab_path, min_freq, stopwords; regex=regex)
@@ -28,7 +29,7 @@ function read_from_file(vocab_path::AbstractString, M::Int, T::Int, min_freq::In
 	freqs = freqs[S[removeTopK+1:end]]
 	id2word = id2word[S[removeTopK+1:end]]
 
-	return VectorModel(freqs, M, T), Dictionary(id2word)
+	return VectorModel(freqs, M, T, alpha, d), Dictionary(id2word)
 end
 
 function build_from_file(text_path::AbstractString, M::Int, T::Int, min_freq::Int64=5)

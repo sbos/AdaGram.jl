@@ -3,6 +3,7 @@ module AdaGram
 using SharedArrays
 import Base.view
 using LinearAlgebra
+using ResumableFunctions
 
 using Libdl
 
