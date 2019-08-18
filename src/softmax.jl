@@ -62,7 +62,7 @@ function build_huffman_tree(freqs::Array{Tf}) where {Tf <: Number}
 		heappush!(heap, (node, freq), freq_ord)
 	end
 
-	@assert length(heap) == 1
+	@assert length(heap) == 1, string(heap)
 
 	return nodes
 end
