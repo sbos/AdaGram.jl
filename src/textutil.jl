@@ -19,6 +19,19 @@ end
   end
 end
 
+@resumable function looped_word_iterator(f::IO, start_pos::Int64,
+  end_pos::Int64) :: AbstractString
+  while true
+    w = readuntil(f, ' ')
+    if length(w) < 1 break end
+    w = w[1:end-1]
+    if !adagram_isblank(w)
+      @yield w
+    end
+    if position(f) >= end_pos seek(f, start_pos) end
+  end
+end
+
 function count_words(f::IOStream, min_freq::Int=5)
   counts = Dict{AbstractString, Int64}()
 
@@ -96,11 +109,12 @@ function read_words(str::AbstractString,
 
   return view(doc, 1:i-1)
 end
+
 function read_words(f::IOStream, start_pos::Int64, end_pos::Int64,
     dict::Dictionary, doc::DenseArray{Int32},
     freqs::DenseArray{Int64}, threshold::Float64,
     words_read::DenseArray{Int64}, total_words::Float64)
-  words = Stateful(Repeated(word_iterator(f, start_pos, end_pos)))
+  words = Stateful(looped_word_iterator(f, start_pos, end_pos))
   i = 1
   while i <= length(doc) && words_read[1] < total_words
     word = popfirst!(words)
