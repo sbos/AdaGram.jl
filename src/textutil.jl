@@ -77,12 +77,11 @@ function read_words(f::IO,
     batch::Int, last_pos::Int)
   words = Stateful(word_iterator(f, last_pos))
   i = 1
-  for j in 1:batch
-    word = popfirst!(words)
+  for word in words
+    if i > batch break end
+
     id = get(dict.word2id, word, -1)
-    if id == -1
-      continue
-    end
+    if id == -1 continue end
 
     doc[i] = id
     i += 1
