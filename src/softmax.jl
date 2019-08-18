@@ -33,7 +33,10 @@ end
 
 function build_huffman_tree(freqs::Array{Tf}) where {Tf <: Number}
 	V = length(freqs)
-	nodes = Array{HierarchicalSoftmaxNode}(HierarchicalSoftmaxNode(), V)
+	nodes = Array{HierarchicalSoftmaxNode}(undef, V)
+	for v in 1:V
+		nodes[v] = HierarchicalSoftmaxNode()
+	end
 
 	freq_ord = By(wf -> wf[2])
 	heap = heapify!([(nodes[v], freqs[v]) for v in 1:V], freq_ord)
