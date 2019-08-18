@@ -8,30 +8,31 @@ function adagram_isblank(s::AbstractString)
         end),s)
 end
 
-function word_iterator(f::IO, end_pos::Int64=-1)
-  function producer()
+function word_iterator(f::IO, end_pos::Int64=-1) :: AbstractString
+  @resumable function producer() :: AbstractString
     while (end_pos < 0 || position(f) < end_pos) && !eof(f)
       w = readuntil(f, ' ')
       if length(w) < 1 break end
       w = w[1:end-1]
       if !adagram_isblank(w)
-        produce(w)
+        @yield w
       end
     end
   end
 
-  return Task(producer)
+  return Stateful(producer)
 end
 
-function looped_word_iterator(f::IO, start_pos::Int64, end_pos::Int64)
-  function producer()
+function looped_word_iterator(f::IO, start_pos::Int64,
+    end_pos::Int64)
+  @resumable function producer() :: AbstractString
     while true
       try
         w = readuntil(f, ' ')
         if length(w) < 1 break end
         w = w[1:end-1]
         if !adagram_isblank(w)
-          produce(w)
+          @yield w
         end
         if position(f) >= end_pos seek(f, start_pos) end
       catch UnicodeError
@@ -39,7 +40,7 @@ function looped_word_iterator(f::IO, start_pos::Int64, end_pos::Int64)
     end
   end
 
-  return Task(producer)
+  return Stateful(producer)
 end
 
 function count_words(f::IOStream, min_freq::Int=5)
@@ -90,7 +91,7 @@ function read_words(f::IO,
   words = word_iterator(f, last_pos)
   i = 1
   for j in 1:batch
-    word = consume(words)
+    word = popfirst!(words)
     id = get(dict.word2id, word, -1)
     if id == -1
       continue
@@ -126,7 +127,7 @@ function read_words(f::IOStream, start_pos::Int64, end_pos::Int64,
   words = looped_word_iterator(f, start_pos, end_pos)
   i = 1
   while i <= length(doc) && words_read[1] < total_words
-    word = consume(words)
+    word = popfirst!(words)
     id = get(dict.word2id, word, -1)
     if id == -1
       continue

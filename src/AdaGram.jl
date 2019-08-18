@@ -5,6 +5,7 @@ import Base.view
 using LinearAlgebra
 using ResumableFunctions
 using Distributed
+import Base.Iterators.Stateful
 
 using Libdl
 
