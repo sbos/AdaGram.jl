@@ -23,7 +23,7 @@ function inplace_train_vectors!(vm::VectorModel, doc::AbstractArray{Tw},
 		random_reduce = context_cut ? rand(1:window_length-1) : 0
 		window = window_length - random_reduce
 
-		z[:] = 0.
+		z[:] .= 0.
 
 		n_senses = var_init_z!(vm, x, z)
 		senses += n_senses
