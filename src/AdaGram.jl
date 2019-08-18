@@ -74,7 +74,7 @@ end
 function shared_zeros(::Type{T}, dims::Tuple) where {T <: Number}
 	S = SharedArray{T}(dims; init = S -> begin
 			chunk = localindices(S)
-			S[chunk] .= T(0)
+			sdata(S[chunk]) .= T(0)
 		end)
 	return S
 end
