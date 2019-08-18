@@ -1,6 +1,6 @@
 import LinearAlgebra.axpy!
 
-function inplace_train_vectors!(vm::VectorModel, doc::DenseArray{Tw},
+function inplace_train_vectors!(vm::VectorModel, doc::AbstractArray{Tw},
 		window_length::Int,
 		start_lr::Float64, total_words::Float64, words_read::DenseArray{Int64},
 		total_ll::DenseArray{Float64}; batch::Int=10000,
