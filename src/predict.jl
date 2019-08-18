@@ -83,7 +83,7 @@ function parallel_likelihood(vm::VectorModel, dict::Dictionary,
 		return local_stats
 	end
 
-	refs = Array{Future, 1}(nworkers())
+	refs = Array{Future, 1}(undef, nworkers())
 	for i in 1:nworkers()
 		refs[i] = remotecall(do_work, i+1, i)
 	end
