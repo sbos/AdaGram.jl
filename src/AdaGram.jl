@@ -4,6 +4,7 @@ using SharedArrays
 import Base.view
 using LinearAlgebra
 using ResumableFunctions
+using Distributed
 
 using Libdl
 
