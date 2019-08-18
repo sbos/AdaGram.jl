@@ -1,3 +1,5 @@
+using SpecialFunctions
+
 mean_beta(a, b) = a / (a + b)
 meanlog_beta(a, b) = digamma(a) - digamma(a + b)
 mean_mirror(a, b) = mean_beta(b, a)
