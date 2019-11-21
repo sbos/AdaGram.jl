@@ -258,7 +258,43 @@ function disambiguate(vm::VectorModel, dict::Dictionary, x::AbstractString,
 	return disambiguate(vm, dict.word2id[x], Int32[dict.word2id[y] for y in context], use_prior, min_prob)
 end
 
+
+# Performs clustering using K-means algorithm adapted from word2vec
+# clustering routine, but handling the representation vector for each
+# different significant meaning of a word. A word can (and probably should)
+# end up in different clusters, according to its different meanings.
+function clustering(vm::VectorModel, dict::Dictionary, outputFile::AbstractString,
+        K::Integer=100; min_prob=1e-3)
+	wordVectors = Float32[]
+	words = AbstractString[]
+
+	# Builds arrays of words and their vectors
+	for w in 1:V(vm)
+		probVec = expected_pi(vm, w)
+		for iMeaning in 1:T(vm)
+			# ignores senses that do not reach min probability
+			if probVec[iMeaning] > min_prob
+				push!(words, dict.id2word[w])
+				currentVector = vm.In[:, iMeaning, w]
+				for currentValue in currentVector 
+					push!(wordVectors, currentValue)
+				end
+			end
+		end
+	end
+
+	# Calls the actual classifier, from a c-function
+	ccall((:kmeans, "superlib"), Void,
+	    (Ptr{Ptr{Cchar}}, Ptr{Float32},
+	    	Int, Int, Int, Ptr{Cchar}), 
+	    words, wordVectors, K, size(words, 1), M(vm), outputFile)
+
+	println("Finished clustering")
+end
+
 export nearest_neighbors
 export disambiguate
 export pi, write_extended
 export cos_dist, preprocess, read_word2vec, write_word2vec
+export load_model
+export clustering, clarkClustering
