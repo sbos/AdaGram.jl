@@ -187,6 +187,14 @@ function vec(vm::VectorModel, dict::Dictionary, w::AbstractString, s::Integer)
 	return vec(vm, dict.word2id[w], s)
 end
 
+function similarity(vm::VectorModel, dict::Dictionary, w1::AbstractString, s1::Integer, w2::AbstractString, s2::Integer)
+	v1 = dict.word2id[w1]
+	v2 = dict.word2id[w2]
+	sense_vec1 = vec(vm, v1, s1)
+	sense_vec2 = vec(vm, v2, s2)
+	return dot(sense_vec1, sense_vec2)
+end
+
 function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{Tsf},
 		K::Integer=10; exclude::Array{Tuple{Int32, Int64}}=Array(Tuple{Int32, Int64}, 0),
 		min_count::Float64=1.)
@@ -262,3 +270,4 @@ export nearest_neighbors
 export disambiguate
 export pi, write_extended
 export cos_dist, preprocess, read_word2vec, write_word2vec
+export similarity
