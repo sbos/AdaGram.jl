@@ -200,7 +200,7 @@ function nearest_neighbors(vm::VectorModel, dict::Dictionary, word::DenseArray{T
 			end
 			in_vs = view(vm.In, :, s, v)
 			sim[s, v] = dot(in_vs, word) / norm(in_vs)
-			@assert(!isnan(sim[s, v]), "NaN found, $s, $(dict.id2word[v])")
+			@assert(isnan(sim[s, v]), "NaN found, $s, $(dict.id2word[v])")
 		end
 	end
 	for (v, s) in exclude
